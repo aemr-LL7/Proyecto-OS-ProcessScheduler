@@ -8,16 +8,21 @@ package Classes;
  *
  * @author Windows 11
  */
-public class Process {
+public class Process implements Runnable{
 
-    private PCB pcb;
+    private final PCB pcb;
     private int totalInstructions;
     private boolean isIOBound;     // Caso contrario CPUbound?
     private int excCycleNumber;     // Ciclos para generar exception
-    private int IOResolveCycles;       // Numero de ciclos para satisfacer una exception
+    private int IOResolveCycles;       // Numero de ciclos para satisfacer una E/S
 
     public Process(PCB pcb) {
         this.pcb = pcb;
+    }
+    
+    @Override 
+    public void run(){
+        
     }
 
     /**

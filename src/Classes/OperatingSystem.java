@@ -5,7 +5,7 @@
 package Classes;
 
 import Classes.Scheduler.QueueManager;
-import Classes.Scheduler.Scheduler;
+import Interfaces.Scheduler;
 import EDD.SimpleList;
 
 /**

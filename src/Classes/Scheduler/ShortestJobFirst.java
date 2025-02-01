@@ -4,6 +4,7 @@
  */
 package Classes.Scheduler;
 
+import Interfaces.Scheduler;
 import Classes.Process;
 
 /**
