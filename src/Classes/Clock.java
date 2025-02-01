@@ -22,7 +22,7 @@ public class Clock {
     private Clock(){
         this.currentCycle = 0;
         this.cycleDuration = 1000; //inicial 1s
-        this.listeners = new SimpleList<>();
+        this.listeners = new SimpleList<>(); //NEVER IMPLEMENTED
     }        
         
     public static synchronized Clock getInstance(){
