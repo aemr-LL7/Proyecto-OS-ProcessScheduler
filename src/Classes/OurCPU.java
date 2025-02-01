@@ -11,11 +11,11 @@ package Classes;
 public class OurCPU {
 
     private Process currentProcess;
-    private boolean busy;
+    private boolean isBusy;
     
     public OurCPU() {
         this.currentProcess = null;
-        this.busy = false;
+        this.isBusy = false;
     }
 
     public boolean isCPUBusy() {
@@ -30,10 +30,10 @@ public class OurCPU {
     }
 
     /**
-     * @return the busy
+     * @return the isBusy
      */
     public boolean isBusy() {
-        return busy;
+        return isBusy;
     }
     
     

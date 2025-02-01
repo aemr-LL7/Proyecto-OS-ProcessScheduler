@@ -24,6 +24,6 @@ class DefaultProcessFactory extends ProcessFactory {
     @Override
     public Process createProcess(String name, int numinstructions, boolean isCpuBound, int exceptionCycleNumber, int resolutionCycles) {
         PCB pcb = new PCB(generateUniqueId(), name);
-        return new Process(pcb, numinstructions, isCpuBound, exceptionCycleNumber, resolutionCycles);
+        return new Process(pcb);
     }
 }

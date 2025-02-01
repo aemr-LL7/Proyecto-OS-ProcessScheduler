@@ -12,16 +12,12 @@ public class Process {
 
     private PCB pcb;
     private int totalInstructions;
-    private boolean isCpuBound;     // Caso contrario i/o bound?
+    private boolean isIOBound;     // Caso contrario CPUbound?
     private int excCycleNumber;     // Ciclos para generar exception
-    private int excResolveCycles;       // Numero de ciclos para satisfacer una exception
+    private int IOResolveCycles;       // Numero de ciclos para satisfacer una exception
 
-    public Process(PCB pcb, int totalInstructions, boolean isCpuBound, int exceptionCycleNumber, int exceptionResolveCycles) {
+    public Process(PCB pcb) {
         this.pcb = pcb;
-        this.totalInstructions = totalInstructions;
-        this.isCpuBound = isCpuBound;
-        this.excCycleNumber = exceptionCycleNumber;
-        this.excResolveCycles = exceptionResolveCycles;
     }
 
     /**
@@ -45,20 +41,24 @@ public class Process {
         this.totalInstructions = totalInstructions;
     }
 
-    /**
-     * @return the isCpuBound
-     */
-    public boolean isIsCpuBound() {
-        return isCpuBound;
+    public boolean isIsIOBound() {
+        return isIOBound;
     }
 
-    /**
-     * @param isCpuBound the isCpuBound to set
-     */
-    public void setIsCpuBound(boolean isCpuBound) {
-        this.isCpuBound = isCpuBound;
+    public void setIsIOBound(boolean isIOBound) {
+        this.isIOBound = isIOBound;
     }
 
+    public int getIOResolveCycles() {
+        return IOResolveCycles;
+    }
+
+    public void setIOResolveCycles(int IOResolveCycles) {
+        this.IOResolveCycles = IOResolveCycles;
+    }
+
+    
+    
     /**
      * @return the excCycleNumber
      */
@@ -73,19 +73,4 @@ public class Process {
         this.excCycleNumber = excCycleNumber;
     }
 
-    /**
-     * @return the excResolveCycles
-     */
-    public int getExcResolveCycles() {
-        return excResolveCycles;
-    }
-
-    /**
-     * @param excResolveCycles the excResolveCycles to set
-     */
-    public void setExcResolveCycles(int excResolveCycles) {
-        this.excResolveCycles = excResolveCycles;
-    }
-    
-    
 }
