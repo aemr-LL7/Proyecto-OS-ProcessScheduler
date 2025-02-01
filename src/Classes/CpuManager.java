@@ -13,12 +13,16 @@ import EDD.SimpleList;
  */
 public class CpuManager {
 
-    private SimpleList<OurCPU> cpuList;
+    private final SimpleList<OurCPU> cpuList;
 
     public CpuManager(int numCPUS) {
         this.cpuList = new SimpleList<>();
         for (int i = 0; i < numCPUS; i++) {
             cpuList.addAtTheEnd(new OurCPU());
         }
+    }
+    
+    public SimpleList<OurCPU> getCPUList(){
+        return this.cpuList.isEmpty() ? null: this.cpuList;
     }
 }

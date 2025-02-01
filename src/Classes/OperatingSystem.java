@@ -13,6 +13,7 @@ import EDD.SimpleList;
  * @author Windows 11
  */
 public class OperatingSystem {
+
     private final QueueManager queueManager;
     private final SimpleList<OurCPU> cpuList;
     private final Scheduler scheduler;
@@ -24,8 +25,24 @@ public class OperatingSystem {
     }
 
     public void scheduleProcesses() {
+        for (int i = 0; i < cpuList.getSize(); i++) {
+            OurCPU cpu = cpuList.getValueByIndex(i);
+            if (!cpu.isBusy() && scheduler.hasProcesses()) {
+                Process nextProcess = scheduler.getNextProcess();
+                cpu.executeProcess(nextProcess);
+            }
+        }
     }
 
     public void handleInterruptions() {
+        for (int i = 0; i < cpuList.getSize(); i++) {
+            OurCPU cpu = cpuList.getValueByIndex(i);
+            if (cpu.hasException()) {
+                Process interruptedProcess = cpu.getCurrentProcess();
+                System.out.println("Proceso " + interruptedProcess.getPcb().getName() + " Genero una interrupcion en OurCPU!");
+                cpu.terminateCurrentProcess();
+                queueManager.addToBlockedQueue(interruptedProcess);
+            }
+        }
     }
 }

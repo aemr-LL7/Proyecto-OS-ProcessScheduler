@@ -5,6 +5,7 @@
 package Classes.Scheduler;
 
 import Classes.Process;
+import EDD.OurQueue;
 
 /**
  *
@@ -12,19 +13,25 @@ import Classes.Process;
  */
 public class FirstComeFirstServed implements Scheduler {
 
+    private final OurQueue<Process> processQueue;
+
+    public FirstComeFirstServed() {
+        this.processQueue = new OurQueue<>();
+    }
+
     @Override
     public void addProcess(Process process) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        processQueue.insert(process);
     }
 
     @Override
     public Process getNextProcess() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return processQueue.isEmpty() ? null : processQueue.pop();
     }
 
     @Override
     public boolean hasProcesses() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return !processQueue.isEmpty();
     }
-    
+
 }

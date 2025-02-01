@@ -4,24 +4,63 @@
  */
 package Classes;
 
+import Main.SimulationConfig;
+
 /**
  *
  * @author Windows 11
  */
-public class Process {
+public class Process extends Thread {
 
     private PCB pcb;
     private int totalInstructions;
-    private boolean isCpuBound;     // Caso contrario i/o bound?
-    private int excCycleNumber;     // Ciclos para generar exception
-    private int excResolveCycles;       // Numero de ciclos para satisfacer una exception
+    private boolean isIOBound;
+    private int exceptionCycleThreshold;      // Cada cuantas instrucciones se lanza una interrupcion (para I/O-bound)
+    private int IOResolveCycles;      // Numero de ciclos para resolver la excepción
+    private int executedInstructions;
 
-    public Process(PCB pcb, int totalInstructions, boolean isCpuBound, int exceptionCycleNumber, int exceptionResolveCycles) {
+    public Process(PCB pcb, int totalInstructions, boolean isIOBound, int exceptionCycleNumber, int exceptionResolveCycles) {
         this.pcb = pcb;
         this.totalInstructions = totalInstructions;
-        this.isCpuBound = isCpuBound;
-        this.excCycleNumber = exceptionCycleNumber;
-        this.excResolveCycles = exceptionResolveCycles;
+        this.isIOBound = isIOBound;
+        this.exceptionCycleThreshold = exceptionCycleNumber;
+        this.IOResolveCycles = exceptionResolveCycles;
+        this.executedInstructions = 0;
+    }
+
+    @Override
+    public void run() {
+        SimulationConfig simuConfig = SimulationConfig.getInstance();
+        while (this.executedInstructions < this.totalInstructions) {
+            
+            int instructionsThisCycle = simuConfig.getCycleQty();   // Cuantas instrucciones se ejecutaran en este ciclo
+
+            for (int i = 0; i < instructionsThisCycle && this.executedInstructions < this.totalInstructions; i++) {
+                this.executedInstructions++;
+                this.pcb.setPC(pcb.getPC() + 1);
+                this.pcb.setMAR(pcb.getMAR() + 1);
+
+                // Verificar si se debe lanzar una interrpu en procesos I/O-bound
+                if (this.isIOBound && (this.executedInstructions % this.exceptionCycleThreshold == 0)) {
+                    System.out.println("Interrupcion lanzada en proceso: " + pcb.getName());
+                    // Se "detiene" el proceso durante los ciclos de resolucion
+                    try {
+                        Thread.sleep(this.IOResolveCycles * simuConfig.getCycleDuration());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            // Simula la duración del ciclo
+            try {
+                Thread.sleep(simuConfig.getCycleDuration());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Proceso " + pcb.getName() + " ha completado su ejecucion.");
+
     }
 
     /**
@@ -29,6 +68,13 @@ public class Process {
      */
     public PCB getPcb() {
         return pcb;
+    }
+
+    /**
+     * @param pcb the pcb to set
+     */
+    public void setPcb(PCB pcb) {
+        this.pcb = pcb;
     }
 
     /**
@@ -46,46 +92,59 @@ public class Process {
     }
 
     /**
-     * @return the isCpuBound
+     * @return the isIOBound
      */
-    public boolean isIsCpuBound() {
-        return isCpuBound;
+    public boolean isIsIOBound() {
+        return isIOBound;
     }
 
     /**
-     * @param isCpuBound the isCpuBound to set
+     * @param isIOBound the isIOBound to set
      */
-    public void setIsCpuBound(boolean isCpuBound) {
-        this.isCpuBound = isCpuBound;
+    public void setIsIOBound(boolean isIOBound) {
+        this.isIOBound = isIOBound;
     }
 
     /**
-     * @return the excCycleNumber
+     * @return the exceptionCycleThreshold
      */
-    public int getExcCycleNumber() {
-        return excCycleNumber;
+    public int getExceptionCycleThreshold() {
+        return exceptionCycleThreshold;
     }
 
     /**
-     * @param excCycleNumber the excCycleNumber to set
+     * @param exceptionCycleThreshold the exceptionCycleThreshold to set
      */
-    public void setExcCycleNumber(int excCycleNumber) {
-        this.excCycleNumber = excCycleNumber;
+    public void setExceptionCycleThreshold(int exceptionCycleThreshold) {
+        this.exceptionCycleThreshold = exceptionCycleThreshold;
     }
 
     /**
-     * @return the excResolveCycles
+     * @return the IOResolveCycles
      */
-    public int getExcResolveCycles() {
-        return excResolveCycles;
+    public int getIOResolveCycles() {
+        return IOResolveCycles;
     }
 
     /**
-     * @param excResolveCycles the excResolveCycles to set
+     * @param IOResolveCycles the IOResolveCycles to set
      */
-    public void setExcResolveCycles(int excResolveCycles) {
-        this.excResolveCycles = excResolveCycles;
+    public void setIOResolveCycles(int IOResolveCycles) {
+        this.IOResolveCycles = IOResolveCycles;
     }
-    
-    
+
+    /**
+     * @return the executedInstructions
+     */
+    public int getExecutedInstructions() {
+        return executedInstructions;
+    }
+
+    /**
+     * @param executedInstructions the executedInstructions to set
+     */
+    public void setExecutedInstructions(int executedInstructions) {
+        this.executedInstructions = executedInstructions;
+    }
+
 }

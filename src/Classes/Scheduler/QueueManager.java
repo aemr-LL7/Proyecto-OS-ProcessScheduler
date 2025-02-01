@@ -26,14 +26,17 @@ public class QueueManager {
 
     public void addToReadyQueue(Process process) {
         readyQueue.insert(process);
+        System.out.println("Proceso : " + process.getPcb().getName() + " ha sido movido a la cola de LISTOS...");
     }
 
     public void addToBlockedQueue(Process process) {
         blockedQueue.insert(process);
+        System.out.println("Proceso : " + process.getPcb().getName() + " ha sido movido a la cola de BLOQUEADOS...");
     }
 
     public void addToFinishedProcessesList(Process process) {
         finishedProcesses.addAtTheEnd(process);
+         System.out.println("Proceso : " + process.getPcb().getName() + " ha terminado, enviando a lista de terminados...");
     }
 
     public Process getNextReadyProcess() {
