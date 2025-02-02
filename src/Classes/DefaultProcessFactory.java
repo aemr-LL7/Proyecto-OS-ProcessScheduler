@@ -9,6 +9,9 @@ public class DefaultProcessFactory extends ProcessFactory {
     @Override
     public Process createProcess(String name, int numInstructions, boolean isIOBound, int exceptionCycleNumber, int resolutionCycles) {
         PCB pcb = new PCB(generateUniqueId(), name);
-        return new Process(pcb, numInstructions, isIOBound, exceptionCycleNumber, resolutionCycles);
+        
+        Process newProcess = new Process(pcb, numInstructions, isIOBound, exceptionCycleNumber, resolutionCycles);
+        pcb.setProcessRef(newProcess);
+        return newProcess;
     }
 }

@@ -15,6 +15,7 @@ public class PCB {
     private int PC;     // Program Counter
     private int MAR;      // Memory Address Register
     private ProcessState state; // READY, RUNNING, BLOCKED
+    private Process processRef;
 
     public PCB(int id, String name) {
         this.id = id;
@@ -22,6 +23,7 @@ public class PCB {
         this.PC = 0;
         this.MAR = 0;
         this.state = ProcessState.READY;
+        this.processRef = null;
     }
 
     public void updateState(ProcessState newState) {
@@ -97,7 +99,13 @@ public class PCB {
     public void setState(ProcessState state) {
         this.state = state;
     }
-    
-    
-    
+
+    public Process getProcessRef() {
+        return processRef;
+    }
+
+    public void setProcessRef(Process processRef) {
+        this.processRef = processRef;
+    }
+
 }
