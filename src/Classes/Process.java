@@ -138,5 +138,9 @@ public class Process extends Thread {
     public void setExecutedInstructions(int executedInstructions) {
         this.executedInstructions = executedInstructions;
     }
+    
+    public String getPid(){
+        return this.pcb.getId();
+    }
 
 }

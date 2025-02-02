@@ -14,7 +14,7 @@ public abstract class ProcessFactory {
 
     public abstract Process createProcess(String name, int instructions, boolean isCpuBound, int exceptionCycleNumber, int resolutionCycles);
 
-    protected int generateUniqueId() {
-        return idCounter++;
+    protected String generateUniqueId() {
+        return "u" + idCounter++;
     }
 }

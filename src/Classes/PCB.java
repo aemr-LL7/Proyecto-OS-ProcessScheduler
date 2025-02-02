@@ -10,7 +10,7 @@ package Classes;
  */
 public class PCB {
 
-    private int id;
+    private String id;
     private String name;
     private int PC;                       // Program Counter
     private int MAR;                      // Memory Address Register
@@ -21,7 +21,7 @@ public class PCB {
     private int exceptionCycleThreshold;  // Cada cuantas instrucciones se lanza una interrupcion (para I/O-bound)
     private int IOResolveCycles;          // Numero de ciclos para resolver la excepción
 
-    public PCB(int id, String name, int totalInstructions, boolean isIOBound, int exceptionCycleThreshold, int IOResolveCycles) {
+    public PCB(String id, String name, int totalInstructions, boolean isIOBound, int exceptionCycleThreshold, int IOResolveCycles) {
         this.id = id;
         this.name = name;
         this.PC = 0;
@@ -38,11 +38,11 @@ public class PCB {
         this.setState(newState);
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
