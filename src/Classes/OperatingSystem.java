@@ -33,16 +33,17 @@ public class OperatingSystem {
             }
         }
     }
-
-    public void handleInterruptions() {
-        for (int i = 0; i < cpuList.getSize(); i++) {
-            OurCPU cpu = cpuList.getValueByIndex(i);
-            if (cpu.hasException()) {
-                Process interruptedProcess = cpu.getCurrentProcess();
-                System.out.println("Proceso " + interruptedProcess.getPcb().getName() + " Genero una interrupcion en OurCPU!");
-                cpu.terminateCurrentProcess();
-                queueManager.addToBlockedQueue(interruptedProcess);
-            }
-        }
-    }
+    
+    //Revisar esta monda de funcion 
+//    public void handleInterruptions() {
+//        for (int i = 0; i < cpuList.getSize(); i++) {
+//            OurCPU cpu = cpuList.getValueByIndex(i);
+//            if (cpu.hasException()) {
+//                Process interruptedProcess = cpu.getCurrentProcess();
+//                System.out.println("Proceso " + interruptedProcess.getPcb().getName() + " Genero una interrupcion en OurCPU!");
+//                cpu.terminateCurrentProcess();
+//                queueManager.addToBlockedQueue(interruptedProcess);
+//            }
+//        }
+//    }
 }
