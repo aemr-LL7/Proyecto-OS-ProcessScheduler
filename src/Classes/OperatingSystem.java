@@ -12,7 +12,7 @@ import EDD.SimpleList;
  *
  * @author Windows 11
  */
-public class OperatingSystem {
+public class OperatingSystem implements Runnable{
     private final QueueManager queueManager;
     private final SimpleList<OurCPU> cpuList;
     private final Scheduler scheduler;
@@ -23,6 +23,11 @@ public class OperatingSystem {
         this.scheduler = scheduler;
     }
 
+    @Override
+    public void run(){
+        
+    }
+    
     public void scheduleProcesses() {
     }
 

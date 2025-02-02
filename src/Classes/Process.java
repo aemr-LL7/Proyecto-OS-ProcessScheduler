@@ -5,6 +5,7 @@
 package Classes;
 
 import Interfaces.ClockListener;
+import java.util.Random;
 
 /**
  *
@@ -12,19 +13,21 @@ import Interfaces.ClockListener;
  */
 public class Process implements Runnable, ClockListener {
 
-    private int PC;     // Program Counter
-    private int MAR;    // Memory Address Register
+    private int PC;                // Program Counter
+    private int MAR;               // Memory Address Register
     private int totalInstructions; //Total de instrucciones
     private boolean isIOBound;     // Caso contrario CPUbound?
     private int excCycleNumber;    // Ciclos para generar exception
+    private int exceptionSolveNumber;
     private int IOResolveCycles;   // Numero de ciclos para satisfacer una E/S
-    private ProcessState state; // READY, RUNNING, BLOCKED
+    private ProcessState state;    // READY, RUNNING, BLOCKED
 
-    public Process(int totalInstructions, boolean isIOBound, int excCycleNumber, int IOResolveCycles) {
-        this.totalInstructions = totalInstructions;
+    public Process( boolean isIOBound, int excCycleNumber, int IOResolveCycles, int exceptionSolveNumber) {
+        this.totalInstructions = generateRandomInstructions();
         this.isIOBound = isIOBound;
         this.excCycleNumber = excCycleNumber;
         this.IOResolveCycles = IOResolveCycles;
+        this.exceptionSolveNumber = exceptionSolveNumber;
         
         this.state = ProcessState.READY;
         this.PC = 0;
@@ -45,7 +48,12 @@ public class Process implements Runnable, ClockListener {
 
     @Override
     public void onTick(int currentCycle) {
-
+        
+    }
+    
+    private int generateRandomInstructions(){
+        Random random = new Random();
+        return random.nextInt(900) + 100; //numero entre 100 y 1000
     }
 
     public int getPC() {
