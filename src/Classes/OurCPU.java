@@ -4,6 +4,7 @@
  */
 package Classes;
 
+import Classes.ProcessFactory.Process;
 import Main.SimulationConfig;
 
 /**

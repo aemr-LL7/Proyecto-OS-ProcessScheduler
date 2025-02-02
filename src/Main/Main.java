@@ -1,9 +1,9 @@
 
 import Classes.CpuManager;
-import Classes.DefaultProcessFactory;
+import Classes.ProcessFactory.DefaultProcessFactory;
 import Classes.OperatingSystem;
-import Classes.ProcessFactory;
-import Classes.Process;
+import Classes.ProcessFactory.ProcessFactory;
+import Classes.ProcessFactory.Process;
 import Classes.Scheduler.FirstComeFirstServed;
 import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;

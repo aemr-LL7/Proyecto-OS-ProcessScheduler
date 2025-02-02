@@ -4,6 +4,7 @@
  */
 package Classes;
 
+import Classes.ProcessFactory.Process;
 import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
 import EDD.SimpleList;

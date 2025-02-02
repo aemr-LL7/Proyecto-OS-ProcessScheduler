@@ -4,7 +4,7 @@
  */
 package Classes.Scheduler;
 
-import Classes.Process;
+import Classes.ProcessFactory.Process;
 
 /**
  *
