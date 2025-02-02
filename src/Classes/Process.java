@@ -13,39 +13,31 @@ import Main.SimulationConfig;
 public class Process extends Thread {
 
     private PCB pcb;
-    private int totalInstructions;
-    private boolean isIOBound;
-    private int exceptionCycleThreshold;      // Cada cuantas instrucciones se lanza una interrupcion (para I/O-bound)
-    private int IOResolveCycles;      // Numero de ciclos para resolver la excepción
     private int executedInstructions;
 
-    public Process(PCB pcb, int totalInstructions, boolean isIOBound, int exceptionCycleNumber, int exceptionResolveCycles) {
+    public Process(PCB pcb) {
         this.pcb = pcb;
-        this.totalInstructions = totalInstructions;
-        this.isIOBound = isIOBound;
-        this.exceptionCycleThreshold = exceptionCycleNumber;
-        this.IOResolveCycles = exceptionResolveCycles;
         this.executedInstructions = 0;
     }
 
     @Override
     public void run() {
         SimulationConfig simuConfig = SimulationConfig.getInstance();
-        while (this.executedInstructions < this.totalInstructions) {
-            
+        while (this.executedInstructions < this.getTotalInstructions()) {
+
             int instructionsThisCycle = simuConfig.getCycleQty();   // Cuantas instrucciones se ejecutaran en este ciclo
 
-            for (int i = 0; i < instructionsThisCycle && this.executedInstructions < this.totalInstructions; i++) {
+            for (int i = 0; i < instructionsThisCycle && this.executedInstructions < this.getTotalInstructions(); i++) {
                 this.executedInstructions++;
                 this.pcb.setPC(pcb.getPC() + 1);
                 this.pcb.setMAR(pcb.getMAR() + 1);
 
                 // Verificar si se debe lanzar una interrpu en procesos I/O-bound
-                if (this.isIOBound && (this.executedInstructions % this.exceptionCycleThreshold == 0)) {
+                if (this.isIOBound() && (this.executedInstructions % this.getExceptionCycleThreshold() == 0)) {
                     System.out.println("Interrupcion lanzada en proceso: " + pcb.getName());
                     // Se "detiene" el proceso durante los ciclos de resolucion
                     try {
-                        Thread.sleep(this.IOResolveCycles * simuConfig.getCycleDuration());
+                        Thread.sleep(this.pcb.getIOResolveCycles() * simuConfig.getCycleDuration());
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -81,56 +73,56 @@ public class Process extends Thread {
      * @return the totalInstructions
      */
     public int getTotalInstructions() {
-        return totalInstructions;
+        return this.pcb.getTotalInstructions();
     }
 
     /**
      * @param totalInstructions the totalInstructions to set
      */
     public void setTotalInstructions(int totalInstructions) {
-        this.totalInstructions = totalInstructions;
+        this.pcb.setTotalInstructions(totalInstructions);
     }
 
     /**
      * @return the isIOBound
      */
-    public boolean isIsIOBound() {
-        return isIOBound;
+    public boolean isIOBound() {
+        return this.pcb.isIOBound();
     }
 
     /**
      * @param isIOBound the isIOBound to set
      */
     public void setIsIOBound(boolean isIOBound) {
-        this.isIOBound = isIOBound;
+        this.pcb.setIsIOBound(isIOBound);
     }
 
     /**
      * @return the exceptionCycleThreshold
      */
     public int getExceptionCycleThreshold() {
-        return exceptionCycleThreshold;
+        return this.pcb.getExceptionCycleThreshold();
     }
 
     /**
      * @param exceptionCycleThreshold the exceptionCycleThreshold to set
      */
     public void setExceptionCycleThreshold(int exceptionCycleThreshold) {
-        this.exceptionCycleThreshold = exceptionCycleThreshold;
+        this.pcb.setExceptionCycleThreshold(exceptionCycleThreshold);
     }
 
     /**
      * @return the IOResolveCycles
      */
     public int getIOResolveCycles() {
-        return IOResolveCycles;
+        return this.pcb.getIOResolveCycles();
     }
 
     /**
      * @param IOResolveCycles the IOResolveCycles to set
      */
     public void setIOResolveCycles(int IOResolveCycles) {
-        this.IOResolveCycles = IOResolveCycles;
+        this.pcb.setIOResolveCycles(IOResolveCycles);
     }
 
     /**
