@@ -5,6 +5,7 @@
 package Classes.Scheduler;
 
 import Classes.ProcessFactory.Process;
+import EDD.OurQueue;
 
 /**
  *
@@ -12,19 +13,48 @@ import Classes.ProcessFactory.Process;
  */
 public class RoundRobin implements Scheduler {
 
+    private final OurQueue<Process> readyQueue;
+    private final int quantum;
+
+    public RoundRobin(int quantum) {
+        this.readyQueue = new OurQueue<>();
+        this.quantum = quantum;
+    }
+
     @Override
     public void addProcess(Process process) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        readyQueue.insert(process);
+        System.out.println("Proceso " + process.getPcb().getName() + " agregado a la cola de Round Robinnnnnnnn");
     }
 
     @Override
     public Process getNextProcess() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (readyQueue.isEmpty()) {
+            return null;
+        }
+
+        Process nextProcess = readyQueue.pop();
+
+        // Simul por quantum
+        System.out.println("Robin) Ejecutando proceso: " + nextProcess.getPcb().getName() + " por " + quantum + " cicloss");
+
+        for (int i = 0; i < quantum && !nextProcess.hasFinished(); i++) {
+            nextProcess.executeInstruction();
+        }
+
+        // Si el proceso no ha terminado, se vuelve a encolar al final
+        if (!nextProcess.hasFinished()) {
+            readyQueue.insert(nextProcess);
+            System.out.println("Robin) Proceso " + nextProcess.getPcb().getName() + " se mueve al final de la cola");
+        } else {
+            System.out.println("Robin) Proceso " + nextProcess.getPcb().getName() + " ha terminado");
+        }
+
+        return nextProcess;
     }
 
     @Override
     public boolean hasProcesses() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return !readyQueue.isEmpty();
     }
-    
 }

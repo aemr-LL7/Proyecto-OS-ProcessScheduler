@@ -12,16 +12,14 @@ public class SimulationConfig {
     private static SimulationConfig simuInstance;
 
     private int cycleDuration;      // Duración cada ciclo en ms
-    private int totalCycles;
-    private int numCPU;
+    private int numCPUs;
     private int cycleQty;  // Cantidad de instrucciones que se ejecutan por ciclo
 
     private SimulationConfig() {
         // Valores por defecto
-        this.cycleDuration = 1000;      // 1000 ms = 1 segundo
-        this.totalCycles = 100;        // 100 ciclos
-        this.numCPU = 2;
-        this.cycleQty = 1;    // 1 instruccion por ciclo
+        this.cycleDuration = 2000;      // 1000 ms = 1 segundo
+        this.numCPUs = 2;
+        this.cycleQty = 2;    // 2 instruccion por ciclo
     }
 
     public static synchronized SimulationConfig getInstance() {
@@ -60,31 +58,17 @@ public class SimulationConfig {
     }
 
     /**
-     * @return the totalCycles
-     */
-    public int getTotalCycles() {
-        return totalCycles;
-    }
-
-    /**
-     * @param totalCycles the totalCycles to set
-     */
-    public void setTotalCycles(int totalCycles) {
-        this.totalCycles = totalCycles;
-    }
-
-    /**
      * @return the numCPU
      */
-    public int getNumCPU() {
-        return numCPU;
+    public int getNumCPUs() {
+        return numCPUs;
     }
 
     /**
      * @param numCPU the numCPU to set
      */
-    public void setNumCPU(int numCPU) {
-        this.numCPU = numCPU;
+    public void setNumCPUs(int numCPU) {
+        this.numCPUs = numCPU;
     }
 
     /**

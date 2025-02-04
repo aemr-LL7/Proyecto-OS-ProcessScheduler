@@ -5,57 +5,63 @@
 package Classes;
 
 import Classes.ProcessFactory.Process;
-import Main.SimulationConfig;
+import java.util.concurrent.Semaphore;
 
 /**
  *
  * @author Windows 11
  */
-public class OurCPU {
+public class OurCPU extends Thread {
 
     private Process currentProcess;
-    private boolean busy;
+    private final Semaphore instructionSemaphore;
+    private boolean running;
 
-    public OurCPU() {
+    public OurCPU(Semaphore instructionSemaphore) {
         this.currentProcess = null;
-        this.busy = false;
+        this.instructionSemaphore = instructionSemaphore;
+        this.running = true;
+    }
+
+    public boolean isBusy() {
+        return getCurrentProcess() != null;
     }
 
     public void executeProcess(Process process) {
-        this.currentProcess = process;
-        this.busy = true;
-        System.out.println("OurCPU está ejecutando el proceso: " + process.getPcb().getName());
-
-        // In this simulation, the process thread might already be running.
-        // However, to simulate the CPU execution, we can start a new thread that
-        // waits for the process to complete its cycle.
-        new Thread(() -> {
-            try {
-                SimulationConfig config = SimulationConfig.getInstance();
-                // Simulate execution time based on the total instructions and cycle duration.
-                Thread.sleep(process.getTotalInstructions() * config.getCycleDuration());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            this.terminateCurrentProcess();
-        }).start();
+        this.setCurrentProcess(process);
+        System.out.println("OurCPU esta ejecutando el proceso: " + process.getPcb().getName());
+        process.start(); // Start execution of process as a thread
     }
 
     public void terminateCurrentProcess() {
-        if (currentProcess != null) {
-            System.out.println("OurCPU finalizo la ejecucion del proceso: " + currentProcess.getPcb().getName());
-            currentProcess = null;
-            busy = false;
+        if (getCurrentProcess() != null) {
+            System.out.println("OurCPU termino el proceso: " + getCurrentProcess().getPcb().getName());
+            setCurrentProcess(null);
         }
     }
 
-    public boolean hasException() {
-        // Simula una prob de 10% de tener una excepcion en cada ciclo
-        return currentProcess != null && Math.random() < 0.1;
+    @Override
+    public void run() {
+        while (isRunning()) {
+            try {
+                getInstructionSemaphore().acquire();
+                if (getCurrentProcess() != null) {
+                    getCurrentProcess().executeInstruction();
+                    if (getCurrentProcess().hasFinished()) {
+                        terminateCurrentProcess();
+                    }
+                }
+            } catch (InterruptedException e) {
+                System.err.println("Critical error in CPU: " + e.getMessage());
+                stopCPU(); // Si ocurre un error fatal, stop this CPU
+            } finally {
+                getInstructionSemaphore().release();
+            }
+        }
     }
 
-    public boolean isCPUBusy() {
-        return isBusy();
+    public void stopCPU() {
+        this.setRunning(false);
     }
 
     /**
@@ -66,10 +72,32 @@ public class OurCPU {
     }
 
     /**
-     * @return the busy
+     * @param currentProcess the currentProcess to set
      */
-    public boolean isBusy() {
-        return busy;
+    public void setCurrentProcess(Process currentProcess) {
+        this.currentProcess = currentProcess;
     }
 
+    /**
+     * @return the instructionSemaphore
+     */
+    public Semaphore getInstructionSemaphore() {
+        return instructionSemaphore;
+    }
+
+    /**
+     * @return the running
+     */
+    public boolean isRunning() {
+        return running;
+    }
+
+    /**
+     * @param running the running to set
+     */
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+    
+    
 }

@@ -4,20 +4,18 @@
  */
 package Classes.Scheduler;
 
-import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.Process;
 
 /**
  *
- * @author Windows 11
+ * @author Windows 11 Revisar metodos para las implementaciones de las politicas
+ * de planificacion
  */
 public interface Scheduler {
 
-    void addProcess(PCB process); // Agregar proceso a la cola de listos
+    void addProcess(Process process); // Agregar proceso a la cola de listos
 
     Process getNextProcess(); // Obtener el siguiente proceso según la política
 
     boolean hasProcesses(); // Verificar si hay procesos pendientes
-
-    // Revisar metodos para las implementaciones de las politicas de planificacion
 }

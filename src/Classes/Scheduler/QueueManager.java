@@ -9,6 +9,7 @@ import Classes.ProcessFactory.Process;
 import EDD.OurHashTable;
 import EDD.OurQueue;
 import EDD.SimpleList;
+import Classes.ProcessFactory.ProcessState;
 
 /**
  *
@@ -16,8 +17,8 @@ import EDD.SimpleList;
  */
 public class QueueManager {
 
-    private final OurQueue<PCB> readyQueue;
-    private final OurQueue<PCB> blockedQueue;
+    private final OurQueue<Process> readyQueue;
+    private final OurQueue<Process> blockedQueue;
     private final SimpleList<PCB> finishedProcesses;
     private final OurHashTable<Process> processTable;
 
@@ -28,39 +29,56 @@ public class QueueManager {
         this.processTable = new OurHashTable<>();
     }
 
-    public void addToReadyQueue(PCB process) {
+    public boolean isEmpty() {
+        return readyQueue.isEmpty() && blockedQueue.isEmpty();
+    }
+
+    public void addToReadyQueue(Process process) {
         readyQueue.insert(process);
-        System.out.println("Proceso : " + process.getName() + " ha sido movido a la cola de LISTOS...");
+        process.getPcb().setState(ProcessState.READY);
+        System.out.println("Proceso : " + process.getPcb().getName() + " ha sido movido a la cola de LISTOS...");
     }
 
-    public void addToBlockedQueue(PCB process) {
+    public void addToBlockedQueue(Process process) {
         blockedQueue.insert(process);
-        System.out.println("Proceso : " + process.getName() + " ha sido movido a la cola de BLOQUEADOS...");
+        process.getPcb().setState(ProcessState.BLOCKED);
+        System.out.println("Proceso : " + process.getPcb().getName() + " ha sido movido a la cola de BLOQUEADOS...");
     }
 
-    public void addToFinishedProcessesList(PCB process) {
-        finishedProcesses.addAtTheEnd(process);
-         System.out.println("Proceso : " + process.getName() + " ha terminado, enviando a lista de terminados...");
+    // Mueve un proceso de bloqueados a listos cuando se resuelve la interrup
+    public void unblockProcess(Process process) {
+        if (blockedQueue.remove(process)) {
+            addToReadyQueue(process);
+            System.out.println("Proceso : " + process.getPcb().getName() + " ha sido DESBLOQUEADO y movido a la cola de LISTOS...");
+        }
     }
 
-    public PCB getNextReadyProcess() {
+    // Agrega un PCB a la lista de procesos terminados
+    public void addToFinishedProcessesList(PCB processPCB) {
+        finishedProcesses.addAtTheEnd(processPCB);
+        System.out.println("Proceso : " + processPCB.getName() + " ha terminado, enviando a lista de terminados...");
+    }
+
+    public Process getNextReadyProcess() {
         return readyQueue.isEmpty() ? null : readyQueue.pop();
     }
 
-    public PCB getNextBlockedProcess() {
+    public Process getNextBlockedProcess() {
         return blockedQueue.isEmpty() ? null : blockedQueue.pop();
     }
 
+    // Verifica si hay procesos listos para ejecución
     public boolean hasReadyProcesses() {
         return !readyQueue.isEmpty();
     }
 
+    // Verifica si hay procesos bloqueados
     public boolean hasBlockedProcesses() {
         return !blockedQueue.isEmpty();
     }
 
+    // Devuelve la tabla de procesos activos
     public OurHashTable<Process> getProcessTable() {
         return processTable;
     }
-    
 }

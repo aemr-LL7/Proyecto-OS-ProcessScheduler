@@ -20,38 +20,56 @@ public class Process extends Thread {
         this.executedInstructions = 0;
     }
 
+    public Boolean isBlocked() {
+        return this.pcb.getState() == ProcessState.BLOCKED;
+    }
+
+    public void executeInstruction() {
+        if (this.pcb.getState() == ProcessState.BLOCKED) {
+            System.out.println("El proceso se encuentra bloqueado!");
+        }
+        this.executedInstructions++;
+        pcb.setPC(pcb.getPC() + 1);
+        pcb.setMAR(pcb.getMAR() + 1);
+    }
+
+    public Boolean hasFinished() {
+        return executedInstructions >= pcb.getTotalInstructions();
+    }
+
     @Override
     public void run() {
         SimulationConfig simuConfig = SimulationConfig.getInstance();
         while (this.executedInstructions < this.getTotalInstructions()) {
+            if (this.pcb.getState() != ProcessState.BLOCKED) {
 
-            int instructionsThisCycle = simuConfig.getCycleQty();   // Cuantas instrucciones se ejecutaran en este ciclo
+                int instructionsThisCycle = simuConfig.getCycleQty();   // Cuantas instrucciones se ejecutaran en este ciclo
 
-            for (int i = 0; i < instructionsThisCycle && this.executedInstructions < this.getTotalInstructions(); i++) {
-                this.executedInstructions++;
-                this.pcb.setPC(pcb.getPC() + 1);
-                this.pcb.setMAR(pcb.getMAR() + 1);
+                for (int i = 0; i < instructionsThisCycle && this.executedInstructions < this.getTotalInstructions(); i++) {
 
-                // Verificar si se debe lanzar una interrpu en procesos I/O-bound
-                if (this.isIOBound() && (this.executedInstructions % this.getExceptionCycleThreshold() == 0)) {
-                    System.out.println("Interrupcion lanzada en proceso: " + pcb.getName());
-                    // Se "detiene" el proceso durante los ciclos de resolucion
-                    try {
-                        Thread.sleep(this.pcb.getIOResolveCycles() * simuConfig.getCycleDuration());
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    this.executeInstruction();
+
+                    // Verificar si se debe lanzar una interrpu en procesos I/O-bound
+                    if (this.isIOBound() && (this.executedInstructions % this.getExceptionCycleThreshold() == 0)) {
+                        System.out.println("Interrupcion lanzada del proceso: " + pcb.getName());
+                        // Se "detiene" el proceso durante los ciclos de resolucion
+                        try {
+                            Thread.sleep(this.pcb.getExceptionSolveNumber() * simuConfig.getCycleDuration());
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
-            }
 
-            // Simula la duración del ciclo
-            try {
-                Thread.sleep(simuConfig.getCycleDuration());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                // Simula la duración del ciclo
+                try {
+                    Thread.sleep(simuConfig.getCycleDuration());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+            System.out.println("Proceso " + pcb.getName() + " ha completado su ejecucion.");
         }
-        System.out.println("Proceso " + pcb.getName() + " ha completado su ejecucion.");
 
     }
 
@@ -87,7 +105,7 @@ public class Process extends Thread {
      * @return the isIOBound
      */
     public boolean isIOBound() {
-        return this.pcb.isIOBound();
+        return this.pcb.isIsIOBound();
     }
 
     /**
@@ -114,15 +132,15 @@ public class Process extends Thread {
     /**
      * @return the IOResolveCycles
      */
-    public int getIOResolveCycles() {
-        return this.pcb.getIOResolveCycles();
+    public int getExceptionSolveNumber() {
+        return this.pcb.getExceptionSolveNumber();
     }
 
     /**
      * @param IOResolveCycles the IOResolveCycles to set
      */
-    public void setIOResolveCycles(int IOResolveCycles) {
-        this.pcb.setIOResolveCycles(IOResolveCycles);
+    public void setExceptionSolveNumber(int IOResolveCycles) {
+        this.pcb.setExceptionSolveNumber(IOResolveCycles);
     }
 
     /**
@@ -138,8 +156,8 @@ public class Process extends Thread {
     public void setExecutedInstructions(int executedInstructions) {
         this.executedInstructions = executedInstructions;
     }
-    
-    public String getPid(){
+
+    public String getPid() {
         return this.pcb.getId();
     }
 

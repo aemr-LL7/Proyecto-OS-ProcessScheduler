@@ -2,14 +2,18 @@
 import Classes.CpuManager;
 import Classes.ProcessFactory.DefaultProcessFactory;
 import Classes.OperatingSystem;
+import Classes.OurCPU;
 import Classes.ProcessFactory.ProcessFactory;
 import Classes.ProcessFactory.Process;
 import Classes.Scheduler.FirstComeFirstServed;
 import Classes.Scheduler.QueueManager;
+import Classes.Scheduler.RoundRobin;
 import Classes.Scheduler.Scheduler;
 import Classes.Scheduler.ShortestJobFirst;
 import EDD.SimpleList;
 import Main.SimulationConfig;
+import java.util.concurrent.Semaphore;
+import Classes.Scheduler.RoundRobin;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -26,66 +30,39 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-
-        SimulationConfig simuConfig = SimulationConfig.getInstance();
-        // Opcional
-        simuConfig.setCycleDuration(500);
-//        simuConfig.setTotalCycles(20);
-//        simuConfig.setNumCPU(2);
-//        simuConfig.setCycleQty(1);
-
-        // Maneja ready, blocked, and finished procesos
+        
+        // Init config
+        SimulationConfig configSimulation = SimulationConfig.getInstance();
+        
+        // Init Components
         QueueManager queueManager = new QueueManager();
-
-        // Instancia de algoritmo de planificacion (ejemplo sjf)
-        FirstComeFirstServed scheduler = new FirstComeFirstServed();
-
-        // Implementacion de procesos a crear
+        Scheduler scheduler = new RoundRobin(3); // 3 ciclos
         ProcessFactory processFactory = new DefaultProcessFactory();
+        Semaphore instructionSemaphore = new Semaphore(1);
 
-        // Crear dos procesos iniciales
-        Process process1 = processFactory.createProcess("Process1", 10, false, 3, 1);
-        Process process2 = processFactory.createProcess("Process2", 15, true, 8, 2);
-        Process process3 = processFactory.createProcess("Process3", 15, true, 4, 1);
-        Process process4 = processFactory.createProcess("Process4", 15, false, 1, 4);
+        // Create Processes
+        Process process1 = processFactory.createProcess("P1", 10, true, 0, 0);
+        Process process2 = processFactory.createProcess("P2", 15, false, 3, 2);
+        Process process3 = processFactory.createProcess("P3", 8, true, 0, 0);
 
-        // Add processes to the scheduler and the ready queue of the Queue Manager
         scheduler.addProcess(process1);
         scheduler.addProcess(process2);
         scheduler.addProcess(process3);
-        scheduler.addProcess(process4);
         queueManager.addToReadyQueue(process1);
         queueManager.addToReadyQueue(process2);
         queueManager.addToReadyQueue(process3);
-        queueManager.addToReadyQueue(process4);
 
-        
-        CpuManager cpuManager = new CpuManager(simuConfig.getNumCPU());
-
-        // Crear OS para control de planificacion de procesos e interrupciones
-        OperatingSystem ourOS = new OperatingSystem(queueManager, cpuManager.getCPUList(), scheduler);
-
-        // Optionally, start the process threads so that they execute their run() method
-        // (Depending on the design, the OS scheduling might start or resume these threads)
-        process1.start();
-        process2.start();
-
-        for (int i = 0; i < simuConfig.getTotalCycles(); i++) {
-            System.out.println("Ciclo actual: " + i);
-
-            // Planificar procesos disponibles y las interrupcioens
-            ourOS.scheduleProcesses();
-            ourOS.handleInterruptions();
-
-            // Esperar a la duracion de un ciclo
-            try {
-                Thread.sleep(simuConfig.getCycleDuration());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // Crear e iniciar cpus | se inician 2 por default
+        SimpleList<OurCPU> cpus = new SimpleList<>();
+        for (int i = 0; i < configSimulation.getNumCPUs(); i++) {
+            OurCPU cpu = new OurCPU(instructionSemaphore);
+            cpus.addAtTheEnd(cpu);
+            cpu.start();
         }
 
-        System.out.println("Simulation finished!");
+        // Iniciar la simulacion e init de procesos
+        OperatingSystem os = new OperatingSystem(queueManager, cpus, scheduler);
+        os.startSimulation();
     }
 
 }
