@@ -11,7 +11,8 @@ public class DefaultProcessFactory extends ProcessFactory {
         PCB pcb = new PCB(generateUniqueId(), name, numInstructions, isIOBound, exceptionCycleNumber, resolutionCycles);
         
         Process newProcess = new Process(pcb);
-        pcb.setProcessRef(newProcess);
+        pcb.setProcessRef(newProcess);//Implementacion de puntero Bidimensional
+        
         return newProcess;
     }
 }
