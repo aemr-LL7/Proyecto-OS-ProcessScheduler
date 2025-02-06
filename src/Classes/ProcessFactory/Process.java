@@ -4,73 +4,86 @@
  */
 package Classes.ProcessFactory;
 
-import Main.SimulationConfig;
+import Classes.Scheduler.QueueManager;
+import Main.Clock;
+import Main.ClockListener;
 
 /**
  *
  * @author Windows 11
  */
-public class Process extends Thread {
+public class Process implements ClockListener {
 
-    private PCB pcb;
+    private final PCB pcb;
     private int executedInstructions;
 
     public Process(PCB pcb) {
         this.pcb = pcb;
         this.executedInstructions = 0;
-    }
-
-    public Boolean isBlocked() {
-        return this.pcb.getState() == ProcessState.BLOCKED;
-    }
-
-    public void executeInstruction() {
-        if (this.pcb.getState() == ProcessState.BLOCKED) {
-            System.out.println("El proceso se encuentra bloqueado!");
-        }
-        this.executedInstructions++;
-        pcb.setPC(pcb.getPC() + 1);
-        pcb.setMAR(pcb.getMAR() + 1);
-    }
-
-    public Boolean hasFinished() {
-        return executedInstructions >= pcb.getTotalInstructions();
+        Clock.getInstance().addListener(this); // Se suscribe al Clock
     }
 
     @Override
-    public void run() {
-        SimulationConfig simuConfig = SimulationConfig.getInstance();
-        while (this.executedInstructions < this.getTotalInstructions()) {
-            if (this.pcb.getState() != ProcessState.BLOCKED) {
+    public void onTick(int currentCycle) {
+        if (getPcb().getState() != ProcessState.BLOCKED && getExecutedInstructions() < getPcb().getTotalInstructions()) {
+            executeInstruction();
+        }
+    }
 
-                int instructionsThisCycle = simuConfig.getCycleQty();   // Cuantas instrucciones se ejecutaran en este ciclo
-
-                for (int i = 0; i < instructionsThisCycle && this.executedInstructions < this.getTotalInstructions(); i++) {
-
-                    this.executeInstruction();
-
-                    // Verificar si se debe lanzar una interrpu en procesos I/O-bound
-                    if (this.isIOBound() && (this.executedInstructions % this.getExceptionCycleThreshold() == 0)) {
-                        System.out.println("Interrupcion lanzada del proceso: " + pcb.getName());
-                        // Se "detiene" el proceso durante los ciclos de resolucion
-                        try {
-                            Thread.sleep(this.pcb.getExceptionSolveNumber() * simuConfig.getCycleDuration());
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                // Simula la duración del ciclo
-                try {
-                    Thread.sleep(simuConfig.getCycleDuration());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            System.out.println("Proceso " + pcb.getName() + " ha completado su ejecucion.");
+    public void executeInstruction() {
+        if (pcb.getState() == ProcessState.BLOCKED) {
+            System.out.println("Proceso " + pcb.getName() + " está bloqueado y no puede ejecutar instrucciones.");
+            return;
         }
 
+        executedInstructions++;
+        //System.out.println("P" + pcb.getName() + "\n-> Estoy ejecutando...");
+
+        pcb.setPC(pcb.getPC() + 1);
+        pcb.setMAR(pcb.getMAR() + 1);
+
+        // Verificar si se debe lanzar una interrupción I/O
+        if (pcb.isIsIOBound() && executedInstructions % pcb.getExceptionCycleThreshold() == 0) {
+            handleIOInterruption();
+            return; // Detiene la ejecución para manejar la interrupción
+        }
+
+        // Si el proceso ha terminado, no lo volvemos a encolar
+        if (hasFinished()) {
+            System.out.println("Proceso " + pcb.getName() + " ha finalizado.");
+            QueueManager.getInstance().addToFinishedProcessesList(pcb);
+        }
+    }
+
+    private void handleIOInterruption() {
+        System.out.println("Proceso " + pcb.getName() + " lanzó una interrupción I/O.");
+        pcb.setState(ProcessState.BLOCKED);
+
+        ClockListener temporaryListener = new ClockListener() {
+            private final int startCycle = Clock.getInstance().getCurrentCycle();
+
+            @Override
+            public void onTick(int newCycle) {
+                if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
+                    System.out.println("Proceso " + pcb.getName() + " ha sido desbloqueado.");
+                    pcb.setState(ProcessState.READY);
+
+                    // Solo reencolar si el proceso no ha finalizado
+                    if (!hasFinished()) {
+                        QueueManager.getInstance().addToReadyQueue(Process.this);
+                    }
+
+                    // Remover el listener del Clock
+                    Clock.getInstance().removeListener(this);
+                }
+            }
+        };
+
+        Clock.getInstance().addListener(temporaryListener);
+    }
+
+    public boolean hasFinished() {
+        return executedInstructions >= pcb.getTotalInstructions();
     }
 
     /**
@@ -78,69 +91,6 @@ public class Process extends Thread {
      */
     public PCB getPcb() {
         return pcb;
-    }
-
-    /**
-     * @param pcb the pcb to set
-     */
-    public void setPcb(PCB pcb) {
-        this.pcb = pcb;
-    }
-
-    /**
-     * @return the totalInstructions
-     */
-    public int getTotalInstructions() {
-        return this.pcb.getTotalInstructions();
-    }
-
-    /**
-     * @param totalInstructions the totalInstructions to set
-     */
-    public void setTotalInstructions(int totalInstructions) {
-        this.pcb.setTotalInstructions(totalInstructions);
-    }
-
-    /**
-     * @return the isIOBound
-     */
-    public boolean isIOBound() {
-        return this.pcb.isIsIOBound();
-    }
-
-    /**
-     * @param isIOBound the isIOBound to set
-     */
-    public void setIsIOBound(boolean isIOBound) {
-        this.pcb.setIsIOBound(isIOBound);
-    }
-
-    /**
-     * @return the exceptionCycleThreshold
-     */
-    public int getExceptionCycleThreshold() {
-        return this.pcb.getExceptionCycleThreshold();
-    }
-
-    /**
-     * @param exceptionCycleThreshold the exceptionCycleThreshold to set
-     */
-    public void setExceptionCycleThreshold(int exceptionCycleThreshold) {
-        this.pcb.setExceptionCycleThreshold(exceptionCycleThreshold);
-    }
-
-    /**
-     * @return the IOResolveCycles
-     */
-    public int getExceptionSolveNumber() {
-        return this.pcb.getExceptionSolveNumber();
-    }
-
-    /**
-     * @param IOResolveCycles the IOResolveCycles to set
-     */
-    public void setExceptionSolveNumber(int IOResolveCycles) {
-        this.pcb.setExceptionSolveNumber(IOResolveCycles);
     }
 
     /**
@@ -155,10 +105,6 @@ public class Process extends Thread {
      */
     public void setExecutedInstructions(int executedInstructions) {
         this.executedInstructions = executedInstructions;
-    }
-
-    public String getPid() {
-        return this.pcb.getId();
     }
 
 }

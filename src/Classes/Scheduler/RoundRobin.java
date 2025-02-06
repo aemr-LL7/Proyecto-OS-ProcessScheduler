@@ -14,17 +14,20 @@ import EDD.OurQueue;
 public class RoundRobin implements Scheduler {
 
     private final OurQueue<Process> readyQueue;
-    private final int quantum;
+    private final OurQueue<Process> blockedQueue;
+
+    private final int quantum; // num de instrucciones (o ciclos) que se asignan a cada proceso
 
     public RoundRobin(int quantum) {
-        this.readyQueue = new OurQueue<>();
+        this.readyQueue = QueueManager.getInstance().getReadyQueue();
+        this.blockedQueue = QueueManager.getInstance().getBlockedQueue();
         this.quantum = quantum;
     }
 
     @Override
     public void addProcess(Process process) {
         readyQueue.insert(process);
-        System.out.println("Proceso " + process.getPcb().getName() + " agregado a la cola de Round Robinnnnnnnn");
+        System.out.println("Proceso " + process.getPcb().getName() + " agregado a la cola de Round Robin.");
     }
 
     @Override
@@ -34,20 +37,20 @@ public class RoundRobin implements Scheduler {
         }
 
         Process nextProcess = readyQueue.pop();
+        System.out.println("RoundRobin: Asignando proceso " + nextProcess.getPcb().getName() + " por un quantum de " + quantum + " instrucciones.");
 
-        // Simul por quantum
-        System.out.println("Robin) Ejecutando proceso: " + nextProcess.getPcb().getName() + " por " + quantum + " cicloss");
-
+        // Ejecutar quantum de instrucciones
         for (int i = 0; i < quantum && !nextProcess.hasFinished(); i++) {
             nextProcess.executeInstruction();
         }
 
-        // Si el proceso no ha terminado, se vuelve a encolar al final
-        if (!nextProcess.hasFinished()) {
-            readyQueue.insert(nextProcess);
-            System.out.println("Robin) Proceso " + nextProcess.getPcb().getName() + " se mueve al final de la cola");
+        // Si el proceso ha finalizado, NO se vuelve a encolar
+        if (nextProcess.hasFinished()) {
+            System.out.println("Proceso " + nextProcess.getPcb().getName() + " ha finalizado y será eliminado del sistema.");
+            QueueManager.getInstance().addToFinishedProcessesList(nextProcess.getPcb());
         } else {
-            System.out.println("Robin) Proceso " + nextProcess.getPcb().getName() + " ha terminado");
+            readyQueue.insert(nextProcess);
+            System.out.println("Proceso " + nextProcess.getPcb().getName() + " se mueve al final de la cola.");
         }
 
         return nextProcess;

@@ -5,99 +5,78 @@
 package Classes;
 
 import Classes.ProcessFactory.Process;
+import Classes.Scheduler.QueueManager;
+import Main.Clock;
+import Main.ClockListener;
 import java.util.concurrent.Semaphore;
 
 /**
  *
  * @author Windows 11
  */
-public class OurCPU extends Thread {
+public class OurCPU extends Thread implements ClockListener {
 
     private Process currentProcess;
     private final Semaphore instructionSemaphore;
+    private final Semaphore tickSemaphore; // Para esperar cada tick
     private boolean running;
 
-    public OurCPU(Semaphore instructionSemaphore) {
+    public OurCPU(Semaphore instructionSemaphore, Semaphore tickSemaphore) {
         this.currentProcess = null;
         this.instructionSemaphore = instructionSemaphore;
+        this.tickSemaphore = tickSemaphore;
         this.running = true;
     }
 
     public boolean isBusy() {
-        return getCurrentProcess() != null;
+        return currentProcess != null;
     }
 
     public void executeProcess(Process process) {
-        this.setCurrentProcess(process);
-        System.out.println("OurCPU esta ejecutando el proceso: " + process.getPcb().getName());
-        process.start(); // Start execution of process as a thread
+        this.currentProcess = process;
+        System.out.println("OurCPU está ejecutando el proceso: " + process.getPcb().getName());
     }
 
     public void terminateCurrentProcess() {
-        if (getCurrentProcess() != null) {
-            System.out.println("OurCPU termino el proceso: " + getCurrentProcess().getPcb().getName());
-            setCurrentProcess(null);
+        if (currentProcess != null) {
+            System.out.println("OurCPU ha terminado el proceso: " + currentProcess.getPcb().getName());
+            currentProcess = null;
         }
     }
 
     @Override
     public void run() {
-        while (isRunning()) {
+        while (running) {
             try {
-                getInstructionSemaphore().acquire();
-                if (getCurrentProcess() != null) {
-                    getCurrentProcess().executeInstruction();
-                    if (getCurrentProcess().hasFinished()) {
+                tickSemaphore.acquire(); // Esperar el siguiente tick
+
+                if (currentProcess != null) {
+                    instructionSemaphore.acquire(); // Bloquear la ejecución de instrucciones
+                    currentProcess.executeInstruction();
+
+                    if (currentProcess.hasFinished()) {
                         terminateCurrentProcess();
+                    } else {
+                        QueueManager.getInstance().addToReadyQueue(currentProcess);
                     }
+
+                    instructionSemaphore.release(); // Liberar el semáforo
                 }
             } catch (InterruptedException e) {
-                System.err.println("Critical error in CPU: " + e.getMessage());
-                stopCPU(); // Si ocurre un error fatal, stop this CPU
-            } finally {
-                getInstructionSemaphore().release();
+                System.err.println("Error crítico en CPU: " + e.getMessage());
+                stopCPU();
             }
         }
     }
 
+    // Este método se podría usar para que el OS o el Clock libere el tickSemaphore:
+    @Override
+    public void onTick(int currentCycle) {
+        // Simplemente liberar un tick para este CPU (si no se hace desde el OS)
+        tickSemaphore.release();
+    }
+
     public void stopCPU() {
-        this.setRunning(false);
+        this.running = false;
     }
-
-    /**
-     * @return the currentProcess
-     */
-    public Process getCurrentProcess() {
-        return currentProcess;
-    }
-
-    /**
-     * @param currentProcess the currentProcess to set
-     */
-    public void setCurrentProcess(Process currentProcess) {
-        this.currentProcess = currentProcess;
-    }
-
-    /**
-     * @return the instructionSemaphore
-     */
-    public Semaphore getInstructionSemaphore() {
-        return instructionSemaphore;
-    }
-
-    /**
-     * @return the running
-     */
-    public boolean isRunning() {
-        return running;
-    }
-
-    /**
-     * @param running the running to set
-     */
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
-    
-    
 }

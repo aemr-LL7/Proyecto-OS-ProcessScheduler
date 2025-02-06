@@ -9,6 +9,8 @@ import Classes.ProcessFactory.Process;
 import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
 import EDD.SimpleList;
+import Main.Clock;
+import Main.ClockListener;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
@@ -16,26 +18,46 @@ import java.util.concurrent.Semaphore;
  *
  * @author Windows 11
  */
-public class OperatingSystem {
+public class OperatingSystem implements ClockListener {
 
     private final QueueManager queueManager;
-    private final SimpleList<OurCPU> cpusList;
+    private final SimpleList<OurCPU> cpuList;
     private final Scheduler scheduler;
     private final Semaphore instructionSemaphore;
-
+    private final Semaphore tickSemaphore; // Sincronización con Clock
     private final DefaultProcessFactory processFactory;
     private int cycleCount;
-    private final int processSpawnInterval; // Cada cuantos ciclos se generan nuevos procesos
 
-    public OperatingSystem(QueueManager queueManager, SimpleList<OurCPU> cpus, Scheduler scheduler) {
+    private final int processSpawnInterval = 5; // Se generan nuevos procesos cada 15 ciclos
+    private final int maxReadyQueueSize = 10; // Limite de procesos en cola de listos antes de generar mas
+
+    public OperatingSystem(QueueManager queueManager, SimpleList<OurCPU> cpus, Scheduler scheduler, Semaphore tickSemaphore) {
         this.queueManager = queueManager;
-        this.cpusList = cpus;
+        this.cpuList = cpus;
         this.scheduler = scheduler;
-        this.instructionSemaphore = new Semaphore(1); // Controla la ejecucion de instruc
-
+        this.instructionSemaphore = new Semaphore(1);
+        this.tickSemaphore = tickSemaphore;
         this.processFactory = new DefaultProcessFactory();
         this.cycleCount = 0;
-        this.processSpawnInterval = 5; // Generar nuevos cada 5 ciclos
+        Clock.getInstance().addListener(this);
+    }
+
+    @Override
+    public void onTick(int currentCycle) {
+        cycleCount++;
+
+        // Generar nuevos procesos cada cierto num de ciclos, pero solo si hay espacio en la cola de listos
+        if (cycleCount % processSpawnInterval == 0 && queueManager.getReadyQueueSize() < maxReadyQueueSize) {
+            generateNewProcess();
+        }
+
+        scheduleProcesses();
+        // handleInterruptions();
+
+        if (allCPUsAreIdle() && queueManager.isEmpty()) {
+            System.out.println("¡? Simulacion finalizada: No hay mas procesos activos.");
+            System.exit(0);
+        }
     }
 
     private void generateNewProcess() {
@@ -49,95 +71,27 @@ public class OperatingSystem {
         scheduler.addProcess(newProcess);
         queueManager.addToReadyQueue(newProcess);
 
-        System.out.println(" * * * * Nuevo proceso generado: " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones.");
-    }
-
-    public void startSimulation() {
-        System.out.println("'''''' OS v1.0 ''''''\nStarting simulation now...");
-
-        while (true) {
-            this.cycleCount++;
-
-            // Generar nuevos procesos cada ciertos ciclos
-            if (cycleCount % processSpawnInterval == 0) {
-                this.generateNewProcess();
-            }
-            
-            scheduleProcesses();
-            handleInterruptions();
-
-            if (allCPUsAreIdle() && queueManager.isEmpty()) {
-                System.out.println("Simulacion finalizada: No more active processes");
-                break;
-            }
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                System.err.println("La simulacion encontro un error critico: " + e.getMessage());
-                break;
-            }
-        }
-
-        System.out.println("Simulation stopped...");
+        System.out.println("Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
     }
 
     private void scheduleProcesses() {
-        for (int i = 0; i < this.getCpusList().getSize(); i++) {
-            OurCPU cpu = this.getCpusList().getValueByIndex(i);
-            if (!cpu.isBusy() && this.getScheduler().hasProcesses()) {
-                Process nextProcess = this.getScheduler().getNextProcess();
-                cpu.executeProcess(nextProcess);
-            }
-        }
-    }
-
-    private void handleInterruptions() {
-        for (int i = 0; i < this.getCpusList().getSize(); i++) {
-            OurCPU cpu = this.getCpusList().getValueByIndex(i);
-            if (cpu.isBusy() && cpu.getCurrentProcess().isBlocked()) {
-                System.out.println("Manejando proceso BLOQUEADO: " + cpu.getCurrentProcess().getPcb().getName());
-                getQueueManager().addToBlockedQueue(cpu.getCurrentProcess());
-                cpu.terminateCurrentProcess();
+        for (int i = 0; i < cpuList.getSize(); i++) {
+            OurCPU cpu = cpuList.getValueByIndex(i);
+            if (!cpu.isBusy() && scheduler.hasProcesses()) {
+                Process nextProcess = scheduler.getNextProcess();
+                if (nextProcess != null) {
+                    cpu.executeProcess(nextProcess);
+                }
             }
         }
     }
 
     private boolean allCPUsAreIdle() {
-        for (int i = 0; i < getCpusList().getSize(); i++) {
-            if (this.getCpusList().getValueByIndex(i).isBusy()) {
+        for (int i = 0; i < cpuList.getSize(); i++) {
+            if (cpuList.getValueByIndex(i).isBusy()) {
                 return false;
             }
         }
         return true;
     }
-
-    /**
-     * @return the queueManager
-     */
-    public QueueManager getQueueManager() {
-        return queueManager;
-    }
-
-    /**
-     * @return the cpusList
-     */
-    public SimpleList<OurCPU> getCpusList() {
-        return cpusList;
-    }
-
-    /**
-     * @return the scheduler
-     */
-    public Scheduler getScheduler() {
-        return scheduler;
-    }
-
-    /**
-     * @return the instructionSemaphore
-     */
-    public Semaphore getInstructionSemaphore() {
-        return instructionSemaphore;
-    }
-
 }

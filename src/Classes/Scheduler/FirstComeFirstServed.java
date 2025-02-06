@@ -9,7 +9,7 @@ import EDD.OurQueue;
 
 /**
  *
- * @author Windows 11
+ * @author Windows 11   ###### Re-estructurar
  */
 public class FirstComeFirstServed implements Scheduler {
 

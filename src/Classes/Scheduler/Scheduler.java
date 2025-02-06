@@ -4,6 +4,7 @@
  */
 package Classes.Scheduler;
 
+import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.Process;
 
 /**
