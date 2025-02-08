@@ -15,7 +15,7 @@ public class PCB {
     private int PC;                       // Program Counter
     private int MAR;                      // Memory Address Register
     private ProcessState state;           // READY, RUNNING, BLOCKED
-    private Process processRef;
+    private Process processRef;           //Implementacion con doble puntero
     private int totalInstructions;
     private boolean isIOBound;
     private int exceptionCycleThreshold;  // Cada cuantas instrucciones se lanza una interrupcion (para I/O-bound)

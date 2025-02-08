@@ -40,7 +40,6 @@ public class Process implements ClockListener {
         //System.out.println("P" + pcb.getName() + "\n-> Estoy ejecutando...");
 
         pcb.setPC(pcb.getPC() + 1);
-        pcb.setMAR(pcb.getMAR() + 1);
 
         // Verificar si se debe lanzar una interrupción I/O
         if (pcb.isIsIOBound() && executedInstructions % pcb.getExceptionCycleThreshold() == 0) {
@@ -65,17 +64,23 @@ public class Process implements ClockListener {
             @Override
             public void onTick(int newCycle) {
                 if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
-                    System.out.println("Proceso " + pcb.getName() + " ha sido desbloqueado.");
-                    pcb.setState(ProcessState.READY);
 
                     // Solo reencolar si el proceso no ha finalizado
                     if (!hasFinished()) {
+                        pcb.setState(ProcessState.READY);
+                        
+                        //Sincronizacion???
                         QueueManager.getInstance().addToReadyQueue(Process.this);
                     }
+
+                    // Resetear MAR a 0
+                    pcb.setMAR(0);
 
                     // Remover el listener del Clock
                     Clock.getInstance().removeListener(this);
                 }
+                pcb.setMAR(pcb.getMAR() + 1);
+                System.out.println("Proceso " + pcb.getName() + " ha avanzado su MAR en 1.");
             }
         };
 
