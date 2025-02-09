@@ -20,14 +20,14 @@ public class QueueManager {
 
     private final OurQueue<Process> readyQueue;
     private final OurQueue<Process> blockedQueue;
-    private final SimpleList<PCB> finishedProcesses;
+    private final SimpleList<Process> finishedProcesses;
     private final OurHashTable<Process> processTable;
 
     // Semáforos para proteger cada cola
     private final Semaphore readyQueueSemaphore;
     private final Semaphore blockedQueueSemaphore;
     private final Semaphore finishedQueueSemaphore;
-    
+
     private static QueueManager queueInstance = null;
 
     private QueueManager() {
@@ -39,7 +39,7 @@ public class QueueManager {
         this.blockedQueueSemaphore = new Semaphore(1);
         this.finishedQueueSemaphore = new Semaphore(1);
     }
-    
+
     public static synchronized QueueManager getInstance() {
         if (getQueueInstance() == null) {
             queueInstance = new QueueManager();
@@ -49,22 +49,31 @@ public class QueueManager {
 
     public void addToReadyQueue(Process process) {
         try {
-            getReadyQueueSemaphore().acquire();
-            getReadyQueue().insert(process);
+            readyQueueSemaphore.acquire();
+
+            if (process.getPcb().getState() == ProcessState.BLOCKED) {
+                System.out.println("❌ ERROR: Intentando agregar un proceso bloqueado a la cola de listos: " + process.getPcb().getName());
+                return;
+            }
+
             process.getPcb().setState(ProcessState.READY);
+            readyQueue.insert(process);
+
             System.out.println("Proceso " + process.getPcb().getName() + " agregado a la cola de LISTOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            getReadyQueueSemaphore().release();
+            readyQueueSemaphore.release();
         }
     }
 
     public void addToBlockedQueue(Process process) {
         try {
             getBlockedQueueSemaphore().acquire();
-            getBlockedQueue().insert(process);
+
             process.getPcb().setState(ProcessState.BLOCKED);
+            getBlockedQueue().insert(process);
+
             System.out.println("Proceso " + process.getPcb().getName() + " agregado a la cola de BLOQUEADOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -73,11 +82,13 @@ public class QueueManager {
         }
     }
 
-    public void addToFinishedProcessesList(PCB processPCB) {
+    public void addToFinishedProcessesList(Process process) {
         try {
             getFinishedQueueSemaphore().acquire();
-            getFinishedProcesses().addAtTheEnd(processPCB);
-            System.out.println("Proceso " + processPCB.getName() + " finalizado, movido a la lista de TERMINADOS.");
+
+            getFinishedProcesses().addAtTheEnd(process);
+            process.getPcb().setState(ProcessState.FINISHED);
+            System.out.println("∎ Proceso " + process.getPcb().getName() + " finalizado, movido a la lista de TERMINADOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -87,13 +98,19 @@ public class QueueManager {
 
     public Process getNextReadyProcess() {
         try {
-            getReadyQueueSemaphore().acquire();
-            return getReadyQueue().isEmpty() ? null : getReadyQueue().pop();
+            readyQueueSemaphore.acquire();
+            if (readyQueue.isEmpty()) {
+                return null;
+            }
+
+            Process process = readyQueue.pop();
+            process.getPcb().setState(ProcessState.RUNNING); // CAMBIAR ESTADO A RUNNING
+            return process;
         } catch (InterruptedException e) {
             e.printStackTrace();
             return null;
         } finally {
-            getReadyQueueSemaphore().release();
+            readyQueueSemaphore.release();
         }
     }
 
@@ -136,7 +153,7 @@ public class QueueManager {
     /**
      * @return the finishedProcesses
      */
-    public SimpleList<PCB> getFinishedProcesses() {
+    public SimpleList<Process> getFinishedProcesses() {
         return finishedProcesses;
     }
 
@@ -167,6 +184,5 @@ public class QueueManager {
     public static QueueManager getQueueInstance() {
         return queueInstance;
     }
-    
-    
+
 }

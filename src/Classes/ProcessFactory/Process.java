@@ -25,7 +25,8 @@ public class Process implements ClockListener {
 
     @Override
     public void onTick(int currentCycle) {
-        if (getPcb().getState() != ProcessState.BLOCKED && getExecutedInstructions() < getPcb().getTotalInstructions()) {
+        // Solo ejecutar instrucciones si el proceso esta en RUNNING
+        if (pcb.getState() == ProcessState.RUNNING && executedInstructions < pcb.getTotalInstructions()) {
             executeInstruction();
         }
     }
@@ -36,26 +37,26 @@ public class Process implements ClockListener {
             return;
         }
 
-        executedInstructions++;
-        //System.out.println("P" + pcb.getName() + "\n-> Estoy ejecutando...");
+        // Marcar el proceso como RUNNING cuando está en ejecución
+        pcb.setState(ProcessState.RUNNING);
 
+        executedInstructions++;
         pcb.setPC(pcb.getPC() + 1);
 
         // Verificar si se debe lanzar una interrupción I/O
         if (pcb.isIsIOBound() && executedInstructions % pcb.getExceptionCycleThreshold() == 0) {
             handleIOInterruption();
-            return; // Detiene la ejecución para manejar la interrupción
         }
 
-        // Si el proceso ha terminado, no lo volvemos a encolar
+        // Si el proceso ha terminado, marcarlo como FINISHED
         if (hasFinished()) {
             System.out.println("Proceso " + pcb.getName() + " ha finalizado.");
-            QueueManager.getInstance().addToFinishedProcessesList(pcb);
+            pcb.setState(ProcessState.FINISHED);
         }
     }
 
     private void handleIOInterruption() {
-        System.out.println("Proceso " + pcb.getName() + " lanzó una interrupción I/O.");
+        System.out.println("Proceso " + pcb.getName() + " lanzo una interrupción I/O.");
         pcb.setState(ProcessState.BLOCKED);
 
         ClockListener temporaryListener = new ClockListener() {
@@ -64,23 +65,14 @@ public class Process implements ClockListener {
             @Override
             public void onTick(int newCycle) {
                 if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
-
-                    // Solo reencolar si el proceso no ha finalizado
                     if (!hasFinished()) {
-                        pcb.setState(ProcessState.READY);
-                        
-                        //Sincronizacion???
+                        pcb.setState(ProcessState.READY); // Cambiar el estado a READY
                         QueueManager.getInstance().addToReadyQueue(Process.this);
+                        System.out.println("Proceso " + pcb.getName() + " ha sido desbloqueado y agregado a LISTOS.");
                     }
-
-                    // Resetear MAR a 0
                     pcb.setMAR(0);
-
-                    // Remover el listener del Clock
                     Clock.getInstance().removeListener(this);
                 }
-                pcb.setMAR(pcb.getMAR() + 1);
-                System.out.println("Proceso " + pcb.getName() + " ha avanzado su MAR en 1.");
             }
         };
 

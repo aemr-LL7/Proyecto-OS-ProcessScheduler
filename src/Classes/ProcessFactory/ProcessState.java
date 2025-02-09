@@ -11,5 +11,6 @@ package Classes.ProcessFactory;
 public enum ProcessState {
     READY,
     RUNNING,
-    BLOCKED
+    BLOCKED,
+    FINISHED
 }

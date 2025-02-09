@@ -33,7 +33,7 @@ public class Main {
 
         QueueManager queueManager = QueueManager.getInstance();
 
-        Scheduler scheduler = new RoundRobin(5);
+        Scheduler scheduler = new RoundRobin(12);
 
         DefaultProcessFactory processFactory = new DefaultProcessFactory();
 
@@ -43,11 +43,11 @@ public class Main {
         // CPUS SYNC con el Clock
         Semaphore tickSemaphore = new Semaphore(0);  // Inicialmente en 0 -> sera liberado por el Clock
 
-        Process process1 = processFactory.createProcess("P1", 10, true, 10, 8);
-        Process process2 = processFactory.createProcess("P2", 15, false, 3, 2);
-        Process process3 = processFactory.createProcess("P3", 8, true, 9, 1);
-        Process process4 = processFactory.createProcess("P4", 8, false, 16, 3);
-        Process process5 = processFactory.createProcess("P5", 8, false, 2, 5);
+        Process process1 = processFactory.createProcess("P1", 15, true, 8, 10);
+        Process process2 = processFactory.createProcess("P2", 15, false, 8, 10);
+        Process process3 = processFactory.createProcess("P3", 14, true, 7, 8);
+        Process process4 = processFactory.createProcess("P4", 14, false, 7, 7);
+        Process process5 = processFactory.createProcess("P5", 13, true, 6, 8);
 
         mainMemo.put(process1.getPcb().getId(), process1);
         mainMemo.put(process2.getPcb().getId(), process2);
@@ -56,27 +56,29 @@ public class Main {
         mainMemo.put(process5.getPcb().getId(), process5);
 
         scheduler.addProcess(process1);
+
         scheduler.addProcess(process2);
+
         scheduler.addProcess(process3);
+
         scheduler.addProcess(process4);
+
         scheduler.addProcess(process5);
-        queueManager.addToReadyQueue(process1);
-        queueManager.addToReadyQueue(process2);
-        queueManager.addToReadyQueue(process3);
-        queueManager.addToReadyQueue(process4);
-        queueManager.addToReadyQueue(process5);
+
+        System.out.println("Tamaño de cola de listos INICIAL: " + QueueManager.getInstance().getReadyQueue().getSize());
 
         // Crear una lista de CPU ejemplo 2
-        SimpleList<OurCPU> cpus = new SimpleList<>();
+        SimpleList<OurCPU> cpusList = new SimpleList<>();
         for (int i = 0; i < 2; i++) {
-            OurCPU cpu = new OurCPU(instructionSemaphore, tickSemaphore);
-            cpus.addAtTheEnd(cpu);
+            OurCPU cpu = new OurCPU(instructionSemaphore, tickSemaphore, 5);
+            cpusList.addAtTheEnd(cpu);
+
             // iniciar funcionamiento de cpus
             cpu.start();
         }
 
         // OS se encarga de la planificacion y generacion dinamica de procesos
-        OperatingSystem os_v1 = new OperatingSystem(queueManager, cpus, scheduler, tickSemaphore);
+        OperatingSystem os_v1 = new OperatingSystem(queueManager, cpusList, scheduler, tickSemaphore);
 
         // Iniciar el Clock (que es un hilo) para generar ticks periodicos
         Clock clock = Clock.getInstance();

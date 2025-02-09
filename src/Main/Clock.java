@@ -44,6 +44,7 @@ public class Clock extends Thread {
         while (true) {
             currentCycle++;
             // Notifica a cada listener
+            System.out.println("Clock tick: ciclo " + currentCycle);
             SimpleNode<ClockListener> current = listeners.getpFirst();
             while (current != null) {
                 current.getData().onTick(currentCycle);

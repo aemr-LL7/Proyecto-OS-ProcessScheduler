@@ -22,7 +22,7 @@ public class OperatingSystem implements ClockListener {
 
     private final QueueManager queueManager;
     private final SimpleList<OurCPU> cpuList;
-    private final Scheduler scheduler;
+    private Scheduler scheduler;
     private final Semaphore instructionSemaphore;
     private final Semaphore tickSemaphore; // Sincronización con Clock
     private final DefaultProcessFactory processFactory;
@@ -61,6 +61,11 @@ public class OperatingSystem implements ClockListener {
     }
 
     private void generateNewProcess() {
+        if (queueManager.getReadyQueueSize() >= maxReadyQueueSize) {
+            System.out.println("Cola de listos llena, no se generan nuevos procesos.");
+            return;
+        }
+
         Random random = new Random();
         int instructions = random.nextInt(10) + 5; // Entre 5 y 15 instrucciones
         boolean isIOBound = random.nextBoolean();
@@ -75,13 +80,20 @@ public class OperatingSystem implements ClockListener {
     }
 
     private void scheduleProcesses() {
+        System.out.println("Intentando asignar procesos en el ciclo " + Clock.getInstance().getCurrentCycle());
         for (int i = 0; i < cpuList.getSize(); i++) {
             OurCPU cpu = cpuList.getValueByIndex(i);
+            System.out.println("CPU " + i + " está ocupado: " + cpu.isBusy());
             if (!cpu.isBusy() && scheduler.hasProcesses()) {
                 Process nextProcess = scheduler.getNextProcess();
                 if (nextProcess != null) {
+                    System.out.println("Asignando proceso " + nextProcess.getPcb().getName() + " al CPU " + i);
                     cpu.executeProcess(nextProcess);
+                } else {
+                    System.out.println("No hay procesos disponibles para asignar al CPU " + i);
                 }
+            } else if (cpu.isBusy()) {
+                System.out.println("CPU " + i + " sigue ocupado");
             }
         }
     }
@@ -93,5 +105,9 @@ public class OperatingSystem implements ClockListener {
             }
         }
         return true;
+    }
+
+    public void setScheduler(Scheduler scheduler) {
+        this.scheduler = scheduler;
     }
 }

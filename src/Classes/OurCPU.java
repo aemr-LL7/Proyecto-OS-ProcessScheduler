@@ -5,6 +5,7 @@
 package Classes;
 
 import Classes.ProcessFactory.Process;
+import Classes.ProcessFactory.ProcessState;
 import Classes.Scheduler.QueueManager;
 import Main.Clock;
 import Main.ClockListener;
@@ -21,11 +22,16 @@ public class OurCPU extends Thread implements ClockListener {
     private final Semaphore tickSemaphore; // Para esperar cada tick
     private boolean running;
 
-    public OurCPU(Semaphore instructionSemaphore, Semaphore tickSemaphore) {
+    private int quantumCounter;  // Contador de instrucciones ejecutadas en el quantum
+    private final int quantum;   // Quantum asignado
+
+    public OurCPU(Semaphore instructionSemaphore, Semaphore tickSemaphore, int quantum) {
         this.currentProcess = null;
         this.instructionSemaphore = instructionSemaphore;
         this.tickSemaphore = tickSemaphore;
         this.running = true;
+        this.quantumCounter = 0;
+        this.quantum = quantum;
     }
 
     public boolean isBusy() {
@@ -34,13 +40,17 @@ public class OurCPU extends Thread implements ClockListener {
 
     public void executeProcess(Process process) {
         this.currentProcess = process;
-        System.out.println("OurCPU está ejecutando el proceso: " + process.getPcb().getName());
+        this.quantumCounter = 0;
+        // Actualizamos el estado a RUNNING al iniciar la ejecucion
+        process.getPcb().setState(ProcessState.RUNNING);
+        System.out.println("OurCPU esta ejecutando el proceso: " + process.getPcb().getName());
     }
 
     public void terminateCurrentProcess() {
         if (currentProcess != null) {
             System.out.println("OurCPU ha terminado el proceso: " + currentProcess.getPcb().getName());
-            currentProcess = null;
+            QueueManager.getInstance().addToFinishedProcessesList(currentProcess); // Mover a terminados
+            currentProcess = null; // Liberar CPU
         }
     }
 
@@ -52,15 +62,23 @@ public class OurCPU extends Thread implements ClockListener {
 
                 if (currentProcess != null) {
                     instructionSemaphore.acquire(); // Bloquear la ejecución de instrucciones
+
                     currentProcess.executeInstruction();
 
                     if (currentProcess.hasFinished()) {
-                        terminateCurrentProcess();
+                        System.out.println("CPU ha terminado el proceso: " + currentProcess.getPcb().getName());
+                        QueueManager.getInstance().addToFinishedProcessesList(currentProcess);
+                        currentProcess = null; // ⚠️ LIBERAR EL CPU
+                    } else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
+                        System.out.println("CPU detectó que el proceso " + currentProcess.getPcb().getName() + " está bloqueado.");
+                        QueueManager.getInstance().addToBlockedQueue(currentProcess);
+                        currentProcess = null; // ⚠️ LIBERAR EL CPU
                     } else {
                         QueueManager.getInstance().addToReadyQueue(currentProcess);
+                        currentProcess = null; // ⚠️ LIBERAR EL CPU
                     }
 
-                    instructionSemaphore.release(); // Liberar el semáforo
+                    instructionSemaphore.release(); // Liberar el semaforo
                 }
             } catch (InterruptedException e) {
                 System.err.println("Error crítico en CPU: " + e.getMessage());
@@ -69,14 +87,14 @@ public class OurCPU extends Thread implements ClockListener {
         }
     }
 
-    // Este método se podría usar para que el OS o el Clock libere el tickSemaphore:
     @Override
     public void onTick(int currentCycle) {
-        // Simplemente liberar un tick para este CPU (si no se hace desde el OS)
-        tickSemaphore.release();
+        System.out.println("OurCPU recibe tick: ciclo " + currentCycle);
+        tickSemaphore.release();  // Liberar el semáforo para que el CPU pueda avanzar
     }
 
     public void stopCPU() {
         this.running = false;
+        System.out.println("==================== CPU TERMINATED ====================");
     }
 }
