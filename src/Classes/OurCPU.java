@@ -17,7 +17,7 @@ import java.util.concurrent.Semaphore;
 public class OurCPU extends Thread implements ClockListener {
 
     private Process currentProcess;
-    private final Semaphore instructionSemaphore;
+    private final Semaphore instructionSemaphore; //Con este semaforo aqui no vamos a poder tener concurrencia 
     private final Semaphore tickSemaphore; // Para esperar cada tick
     private boolean running;
 
