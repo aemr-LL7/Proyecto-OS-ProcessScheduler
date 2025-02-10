@@ -129,39 +129,6 @@ public class OurHashTable<T> {
 
     System.out.println("No hay elemento asociado con la key: " + key.toLowerCase());
 }
-    
-    
-    //VERSION VIEJA DE DELETE, ESTE CODIGO VIENE DEL PROYECTO DE ESTRUCTURAS. 
-    //ERROR: NO SE TOMABA EN CUENTA CUANDO HABIA MAS DE 1 COLISION
-
-//    public void delete(String key) {
-//
-//        int hashedKey = key.toLowerCase().hashCode();
-//        int hash = Math.abs(hashFunction(hashedKey));
-//
-//        if (this.table[hash] == null) {
-//            System.out.println("No hay elemento asociado con la key: " + key.toLowerCase() );
-//        } else {
-//
-//            //Conseguir el siguiente elemento en la lista de colisiones si existe
-//            OurEntry<T> bucketedEntry = this.table[hash].getNext();
-//
-//            //Eliminamos la entry de la lista de entries
-//            this.entriesList.delete(this.table[hash].getValue());
-//            this.table[hash] = null;
-//
-//            //Re introducir toda la lista de clisiones a la hashtable
-//            while (bucketedEntry != null) {
-//                this.put(bucketedEntry.getKey(), bucketedEntry.getValue());
-//                bucketedEntry = bucketedEntry.getNext();
-//            }
-//            
-//            System.out.println();
-//
-//
-//        }
-//
-//    }
 
     private int hashFunction(int key) {
         int hash = key % this.tableSize;
@@ -213,5 +180,14 @@ public class OurHashTable<T> {
         }
     }
 
+    /**
+     *
+     * @return
+     */
+    public OurEntry<T>[] getTable() {
+        return table;
+    }
 
+
+    
 }

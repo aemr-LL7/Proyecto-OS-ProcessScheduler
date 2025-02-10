@@ -222,5 +222,27 @@ public class QueueManager {
     public static QueueManager getQueueInstance() {
         return queueInstance;
     }
+    
+    public Semaphore getProcessTableSemaphore(){
+        return this.processTableSemaphore;
+    }
 
+    public OurQueue<PCB> getSuspendedQueue() {
+        return suspendedQueue;
+    }
+
+    public OurQueue<PCB> getNewProcessesQueue() {
+        return newProcessesQueue;
+    }
+
+    public Semaphore getSuspendedQueueSemaphore() {
+        return suspendedQueueSemaphore;
+    }
+
+    public Semaphore getNewProcessesQueueSemaphore() {
+        return newProcessesQueueSemaphore;
+    }
+
+    
+    
 }
