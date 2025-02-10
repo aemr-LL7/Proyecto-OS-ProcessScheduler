@@ -49,7 +49,7 @@ public class OurCPU extends Thread implements ClockListener {
     public void terminateCurrentProcess() {
         if (currentProcess != null) {
             System.out.println("OurCPU ha terminado el proceso: " + currentProcess.getPcb().getName());
-            QueueManager.getInstance().addToFinishedProcessesList(currentProcess); // Mover a terminados
+            QueueManager.getInstance().addToFinishedProcessesList(currentProcess.getPcb()); // Mover a terminados
             currentProcess = null; // Liberar CPU
         }
     }
@@ -67,17 +67,18 @@ public class OurCPU extends Thread implements ClockListener {
 
                     if (currentProcess.hasFinished()) {
                         System.out.println("CPU ha terminado el proceso: " + currentProcess.getPcb().getName());
-                        QueueManager.getInstance().addToFinishedProcessesList(currentProcess);
+                        QueueManager.getInstance().addToFinishedProcessesList(currentProcess.getPcb());
                         currentProcess = null; // ⚠️ LIBERAR EL CPU
                     } else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
                         System.out.println("CPU detectó que el proceso " + currentProcess.getPcb().getName() + " está bloqueado.");
-                        QueueManager.getInstance().addToBlockedQueue(currentProcess);
+                        QueueManager.getInstance().addToBlockedQueue(currentProcess.getPcb());
                         currentProcess = null; // ⚠️ LIBERAR EL CPU
                     } else {
-                        QueueManager.getInstance().addToReadyQueue(currentProcess);
+                        QueueManager.getInstance().addToReadyQueue(currentProcess.getPcb());
                         currentProcess = null; // ⚠️ LIBERAR EL CPU
                     }
 
+                    
                     instructionSemaphore.release(); // Liberar el semaforo
                 }
             } catch (InterruptedException e) {

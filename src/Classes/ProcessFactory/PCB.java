@@ -15,7 +15,6 @@ public class PCB {
     private int PC;                       // Program Counter
     private int MAR;                      // Memory Address Register
     private ProcessState state;           // READY, RUNNING, BLOCKED
-    private Process processRef;           //Implementacion con doble puntero
     private int totalInstructions;
     private boolean isIOBound;
     private int exceptionCycleThreshold;  // Cada cuantas instrucciones se lanza una interrupcion (para I/O-bound)
@@ -27,7 +26,6 @@ public class PCB {
         this.PC = 0;
         this.MAR = 0;
         this.state = ProcessState.READY;
-        this.processRef = null;
         this.totalInstructions = totalInstructions;
         this.isIOBound = isIOBound;
         this.exceptionCycleThreshold = exceptionCycleThreshold;
@@ -37,8 +35,6 @@ public class PCB {
     public void updateState(ProcessState newState) {
         this.setState(newState);
     }
-    
-
 
     /**
      * @return the id
@@ -108,20 +104,6 @@ public class PCB {
      */
     public void setState(ProcessState state) {
         this.state = state;
-    }
-
-    /**
-     * @return the processRef
-     */
-    public Process getProcessRef() {
-        return processRef;
-    }
-
-    /**
-     * @param processRef the processRef to set
-     */
-    public void setProcessRef(Process processRef) {
-        this.processRef = processRef;
     }
 
     /**

@@ -4,15 +4,27 @@
  */
 package Classes.ProcessFactory;
 
+import Classes.Scheduler.QueueManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class DefaultProcessFactory extends ProcessFactory {
 
     @Override
     public Process createProcess(String name, int numInstructions, boolean isIOBound, int exceptionCycleNumber, int resolutionCycles) {
-        PCB pcb = new PCB(generateUniqueId(), name, numInstructions, isIOBound, exceptionCycleNumber, resolutionCycles);
+        try {
+            PCB pcb = new PCB(generateUniqueId(), name, numInstructions, isIOBound, exceptionCycleNumber, resolutionCycles);
+            
+            Process newProcess = new Process(pcb);
+            QueueManager queueManager = QueueManager.getInstance();
+            queueManager.addNewProcess(newProcess);
+            
+            
+            return newProcess;
+        } catch (InterruptedException ex) {
+            Logger.getLogger(DefaultProcessFactory.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-        Process newProcess = new Process(pcb);
-        pcb.setProcessRef(newProcess);//Implementacion de puntero Bidimensional
-        
-        return newProcess;
+        return null;
     }
 }

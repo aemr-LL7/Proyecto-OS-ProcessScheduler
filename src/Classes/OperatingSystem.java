@@ -9,6 +9,7 @@ import Classes.ProcessFactory.Process;
 import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
 import EDD.SimpleList;
+import EDD.SimpleNode;
 import Main.Clock;
 import Main.ClockListener;
 import java.util.Random;
@@ -73,8 +74,6 @@ public class OperatingSystem implements ClockListener {
         int resolutionCycles = isIOBound ? (random.nextInt(3) + 1) : 0;
 
         Process newProcess = processFactory.createProcess("P" + cycleCount, instructions, isIOBound, exceptionThreshold, resolutionCycles);
-        scheduler.addProcess(newProcess);
-        queueManager.addToReadyQueue(newProcess);
 
         System.out.println("Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
     }
@@ -84,8 +83,12 @@ public class OperatingSystem implements ClockListener {
         for (int i = 0; i < cpuList.getSize(); i++) {
             OurCPU cpu = cpuList.getValueByIndex(i);
             System.out.println("CPU " + i + " está ocupado: " + cpu.isBusy());
-            if (!cpu.isBusy() && scheduler.hasProcesses()) {
+            if (areCpusIdle()) {
                 Process nextProcess = scheduler.getNextProcess();
+                
+                
+                
+                
                 if (nextProcess != null) {
                     System.out.println("Asignando proceso " + nextProcess.getPcb().getName() + " al CPU " + i);
                     cpu.executeProcess(nextProcess);
@@ -109,5 +112,19 @@ public class OperatingSystem implements ClockListener {
 
     public void setScheduler(Scheduler scheduler) {
         this.scheduler = scheduler;
+    }
+
+    public boolean areCpusIdle() {
+
+        SimpleNode<OurCPU> currentCPU = this.cpuList.getpFirst();
+
+        while (currentCPU != null) {
+            if (!currentCPU.getData().isBusy()) {
+                return true;}
+            
+            currentCPU = currentCPU.getpNext();
+        }
+         
+        return false;
     }
 }

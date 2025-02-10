@@ -18,26 +18,37 @@ import java.util.concurrent.Semaphore;
  */
 public class QueueManager {
 
-    private final OurQueue<Process> readyQueue;
-    private final OurQueue<Process> blockedQueue;
-    private final SimpleList<Process> finishedProcesses;
+    private final OurQueue<PCB> readyQueue;
+    private final OurQueue<PCB> blockedQueue;
+    private final OurQueue<PCB> suspendedQueue;
+    private final OurQueue<PCB> newProcessesQueue;
+    private final SimpleList<PCB> finishedProcesses;
     private final OurHashTable<Process> processTable;
 
     // Semáforos para proteger cada cola
     private final Semaphore readyQueueSemaphore;
     private final Semaphore blockedQueueSemaphore;
     private final Semaphore finishedQueueSemaphore;
+    private final Semaphore suspendedQueueSemaphore;
+    private final Semaphore processTableSemaphore;
+    private final Semaphore newProcessesQueueSemaphore;
 
     private static QueueManager queueInstance = null;
 
     private QueueManager() {
         this.readyQueue = new OurQueue<>();
         this.blockedQueue = new OurQueue<>();
+        this.suspendedQueue = new OurQueue<>();
+        this.newProcessesQueue = new OurQueue<>();
         this.finishedProcesses = new SimpleList<>();
         this.processTable = new OurHashTable<>();
+
         this.readyQueueSemaphore = new Semaphore(1);
         this.blockedQueueSemaphore = new Semaphore(1);
         this.finishedQueueSemaphore = new Semaphore(1);
+        this.suspendedQueueSemaphore = new Semaphore(1);
+        this.processTableSemaphore = new Semaphore(1);
+        this.newProcessesQueueSemaphore = new Semaphore(1);
     }
 
     public static synchronized QueueManager getInstance() {
@@ -47,19 +58,19 @@ public class QueueManager {
         return getQueueInstance();
     }
 
-    public void addToReadyQueue(Process process) {
+    public void addToReadyQueue(PCB process) {
         try {
             readyQueueSemaphore.acquire();
 
-            if (process.getPcb().getState() == ProcessState.BLOCKED) {
-                System.out.println("❌ ERROR: Intentando agregar un proceso bloqueado a la cola de listos: " + process.getPcb().getName());
+            if (process.getState() == ProcessState.BLOCKED) {
+                System.out.println("❌ ERROR: Intentando agregar un proceso bloqueado a la cola de listos: " + process.getName());
                 return;
             }
 
-            process.getPcb().setState(ProcessState.READY);
+            process.setState(ProcessState.READY);
             readyQueue.insert(process);
 
-            System.out.println("Proceso " + process.getPcb().getName() + " agregado a la cola de LISTOS.");
+            System.out.println("Proceso " + process.getName() + " agregado a la cola de LISTOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -67,14 +78,14 @@ public class QueueManager {
         }
     }
 
-    public void addToBlockedQueue(Process process) {
+    public void addToBlockedQueue(PCB process) {
         try {
             getBlockedQueueSemaphore().acquire();
 
-            process.getPcb().setState(ProcessState.BLOCKED);
+            process.setState(ProcessState.BLOCKED);
             getBlockedQueue().insert(process);
 
-            System.out.println("Proceso " + process.getPcb().getName() + " agregado a la cola de BLOQUEADOS.");
+            System.out.println("Proceso " + process.getName() + " agregado a la cola de BLOQUEADOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -82,13 +93,12 @@ public class QueueManager {
         }
     }
 
-    public void addToFinishedProcessesList(Process process) {
+    public void addToFinishedProcessesList(PCB process) {
         try {
             getFinishedQueueSemaphore().acquire();
 
             getFinishedProcesses().addAtTheEnd(process);
-            process.getPcb().setState(ProcessState.FINISHED);
-            System.out.println("∎ Proceso " + process.getPcb().getName() + " finalizado, movido a la lista de TERMINADOS.");
+            System.out.println("∎ Proceso " + process.getName() + " finalizado, movido a la lista de TERMINADOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -96,15 +106,15 @@ public class QueueManager {
         }
     }
 
-    public Process getNextReadyProcess() {
+    public PCB getNextReadyProcess() {
         try {
             readyQueueSemaphore.acquire();
             if (readyQueue.isEmpty()) {
                 return null;
             }
 
-            Process process = readyQueue.pop();
-            process.getPcb().setState(ProcessState.RUNNING); // CAMBIAR ESTADO A RUNNING
+            PCB process = readyQueue.pop();
+            process.setState(ProcessState.RUNNING); // CAMBIAR ESTADO A RUNNING
             return process;
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -128,6 +138,34 @@ public class QueueManager {
         }
     }
 
+    public Process getProcessByPCB(PCB processRef) throws InterruptedException {
+        this.readyQueueSemaphore.acquire();
+        this.processTableSemaphore.acquire();
+
+        PCB pcoressPcb = this.readyQueue.pop();
+
+        Process process = processTable.get(processRef.getId());
+
+        this.readyQueueSemaphore.release();
+        this.processTableSemaphore.release();
+        return process;
+    }
+
+    public void hashProcess(Process process) throws InterruptedException {
+        this.processTableSemaphore.acquire();
+
+        this.processTable.put(process.getPcb().getId(), process);
+
+        this.processTableSemaphore.release();
+    }
+
+    public void addNewProcess(Process process) throws InterruptedException{
+        
+        this.hashProcess(process);
+        this.addToReadyQueue(process.getPcb());
+        
+    }
+    
     public OurHashTable<Process> getProcessTable() {
         return processTable;
     }
@@ -139,21 +177,21 @@ public class QueueManager {
     /**
      * @return the readyQueue
      */
-    public OurQueue<Process> getReadyQueue() {
+    public OurQueue<PCB> getReadyQueue() {
         return readyQueue;
     }
 
     /**
      * @return the blockedQueue
      */
-    public OurQueue<Process> getBlockedQueue() {
+    public OurQueue<PCB> getBlockedQueue() {
         return blockedQueue;
     }
 
     /**
      * @return the finishedProcesses
      */
-    public SimpleList<Process> getFinishedProcesses() {
+    public SimpleList<PCB> getFinishedProcesses() {
         return finishedProcesses;
     }
 

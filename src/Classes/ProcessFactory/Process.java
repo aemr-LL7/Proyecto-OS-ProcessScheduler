@@ -48,11 +48,6 @@ public class Process implements ClockListener {
             handleIOInterruption();
         }
 
-        // Si el proceso ha terminado, marcarlo como FINISHED
-        if (hasFinished()) {
-            System.out.println("Proceso " + pcb.getName() + " ha finalizado.");
-            pcb.setState(ProcessState.FINISHED);
-        }
     }
 
     private void handleIOInterruption() {
@@ -67,7 +62,7 @@ public class Process implements ClockListener {
                 if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
                     if (!hasFinished()) {
                         pcb.setState(ProcessState.READY); // Cambiar el estado a READY
-                        QueueManager.getInstance().addToReadyQueue(Process.this);
+                        QueueManager.getInstance().addToReadyQueue(getPcb());
                         System.out.println("Proceso " + pcb.getName() + " ha sido desbloqueado y agregado a LISTOS.");
                     }
                     pcb.setMAR(0);

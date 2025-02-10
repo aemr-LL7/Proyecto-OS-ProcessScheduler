@@ -4,34 +4,31 @@
  */
 package Classes.Scheduler;
 
+import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.Process;
 import EDD.OurQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
- * @author Windows 11   ###### Re-estructurar
+ * @author Windows 11 ###### Re-estructurar
  */
 public class FirstComeFirstServed implements Scheduler {
 
-    private final OurQueue<Process> processQueue;
-
-    public FirstComeFirstServed() {
-        this.processQueue = new OurQueue<>();
-    }
-
-    @Override
-    public void addProcess(Process process) {
-        processQueue.insert(process);
-    }
+    private QueueManager queueManager = QueueManager.getInstance();
 
     @Override
     public Process getNextProcess() {
-        return processQueue.isEmpty() ? null : processQueue.pop();
+        Process process = null;
+        PCB nextProcessPCB = queueManager.getNextReadyProcess();
+        try {
+            process = queueManager.getProcessByPCB(nextProcessPCB);
+            return process;
+        } catch (InterruptedException ex) {
+            
+        }
+        
+        return process;
     }
-
-    @Override
-    public boolean hasProcesses() {
-        return !processQueue.isEmpty();
-    }
-
 }

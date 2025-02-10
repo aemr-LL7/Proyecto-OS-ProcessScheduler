@@ -14,9 +14,6 @@ import Classes.ProcessFactory.Process;
  */
 public interface Scheduler {
 
-    void addProcess(Process process); // Agregar proceso a la cola de listos
-
     Process getNextProcess(); // Obtener el siguiente proceso según la política
 
-    boolean hasProcesses(); // Verificar si hay procesos pendientes
 }
