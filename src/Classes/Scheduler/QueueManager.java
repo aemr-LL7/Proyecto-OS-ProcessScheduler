@@ -63,14 +63,14 @@ public class QueueManager {
             readyQueueSemaphore.acquire();
 
             if (process.getState() == ProcessState.BLOCKED) {
-                System.out.println("❌ ERROR: Intentando agregar un proceso bloqueado a la cola de listos: " + process.getName());
+                System.out.println("ERROR: Intentando agregar un proceso bloqueado a la cola de listos: " + process.getName());
                 return;
             }
 
             process.setState(ProcessState.READY);
             readyQueue.insert(process);
 
-            System.out.println("Proceso " + process.getName() + " agregado a la cola de LISTOS.");
+            System.out.println("****** Proceso " + process.getName() + " agregado a la cola de LISTOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -115,12 +115,11 @@ public class QueueManager {
 
             PCB process = readyQueue.pop();
             process.setState(ProcessState.RUNNING); // CAMBIAR ESTADO A RUNNING
+            readyQueueSemaphore.release();
             return process;
         } catch (InterruptedException e) {
             e.printStackTrace();
             return null;
-        } finally {
-            readyQueueSemaphore.release();
         }
     }
 
@@ -139,15 +138,21 @@ public class QueueManager {
     }
 
     public Process getProcessByPCB(PCB processRef) throws InterruptedException {
+        if (processRef == null) {
+            System.out.println("ERROR: Se intento buscar un proceso nullo");
+        }
         this.readyQueueSemaphore.acquire();
         this.processTableSemaphore.acquire();
 
-        PCB pcoressPcb = this.readyQueue.pop();
-
+        //PCB pcoressPcb = this.readyQueue.pop();
         Process process = processTable.get(processRef.getId());
 
         this.readyQueueSemaphore.release();
         this.processTableSemaphore.release();
+        if (process == null) {
+            System.out.println("ERROR: No se encontro el proceso en la tabla de procesos");
+        }
+        
         return process;
     }
 
@@ -159,13 +164,13 @@ public class QueueManager {
         this.processTableSemaphore.release();
     }
 
-    public void addNewProcess(Process process) throws InterruptedException{
-        
+    public void addNewProcess(Process process) throws InterruptedException {
+
         this.hashProcess(process);
         this.addToReadyQueue(process.getPcb());
-        
+
     }
-    
+
     public OurHashTable<Process> getProcessTable() {
         return processTable;
     }
@@ -222,8 +227,8 @@ public class QueueManager {
     public static QueueManager getQueueInstance() {
         return queueInstance;
     }
-    
-    public Semaphore getProcessTableSemaphore(){
+
+    public Semaphore getProcessTableSemaphore() {
         return this.processTableSemaphore;
     }
 
@@ -243,6 +248,4 @@ public class QueueManager {
         return newProcessesQueueSemaphore;
     }
 
-    
-    
 }

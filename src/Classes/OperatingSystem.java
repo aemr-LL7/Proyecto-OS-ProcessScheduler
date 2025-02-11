@@ -46,17 +46,17 @@ public class OperatingSystem implements ClockListener {
     @Override
     public void onTick(int currentCycle) {
         cycleCount++;
-
-        // Generar nuevos procesos cada cierto num de ciclos, pero solo si hay espacio en la cola de listos
-        if (cycleCount % processSpawnInterval == 0 && queueManager.getReadyQueueSize() < maxReadyQueueSize) {
-            generateNewProcess();
-        }
+//
+//        // Generar nuevos procesos cada cierto número de ciclos
+//        if (cycleCount % processSpawnInterval == 0 && queueManager.getReadyQueueSize() < maxReadyQueueSize) {
+//            generateNewProcess();
+//        }
 
         scheduleProcesses();
-        // handleInterruptions();
 
+        // Verificar si la simulación debe terminar
         if (allCPUsAreIdle() && queueManager.isEmpty()) {
-            System.out.println("¡? Simulacion finalizada: No hay mas procesos activos.");
+            System.out.println("Simulación finalizada: No hay más procesos activos.");
             System.exit(0);
         }
     }
@@ -82,28 +82,21 @@ public class OperatingSystem implements ClockListener {
         System.out.println("Intentando asignar procesos en el ciclo " + Clock.getInstance().getCurrentCycle());
         for (int i = 0; i < cpuList.getSize(); i++) {
             OurCPU cpu = cpuList.getValueByIndex(i);
-            System.out.println("CPU " + i + " está ocupado: " + cpu.isBusy());
-            if (areCpusIdle()) {
+            System.out.println("Estado del CPU-" + i + " -> " + cpu.isIsBusy());
+            if (!cpu.isIsBusy()) { // Solo asignar si el CPU esta libre
                 Process nextProcess = scheduler.getNextProcess();
-                
-                
-                
-                
                 if (nextProcess != null) {
-                    System.out.println("Asignando proceso " + nextProcess.getPcb().getName() + " al CPU " + i);
                     cpu.executeProcess(nextProcess);
-                } else {
-                    System.out.println("No hay procesos disponibles para asignar al CPU " + i);
+                    System.out.println("==> Asignando proceso " + nextProcess.getPcb().getName() + " al CPU " + i);
                 }
-            } else if (cpu.isBusy()) {
-                System.out.println("CPU " + i + " sigue ocupado");
             }
         }
+
     }
 
     private boolean allCPUsAreIdle() {
         for (int i = 0; i < cpuList.getSize(); i++) {
-            if (cpuList.getValueByIndex(i).isBusy()) {
+            if (cpuList.getValueByIndex(i).isIsBusy()) {
                 return false;
             }
         }
@@ -119,12 +112,13 @@ public class OperatingSystem implements ClockListener {
         SimpleNode<OurCPU> currentCPU = this.cpuList.getpFirst();
 
         while (currentCPU != null) {
-            if (!currentCPU.getData().isBusy()) {
-                return true;}
-            
+            if (!currentCPU.getData().isIsBusy()) {
+                return true;
+            }
+
             currentCPU = currentCPU.getpNext();
         }
-         
+
         return false;
     }
 }

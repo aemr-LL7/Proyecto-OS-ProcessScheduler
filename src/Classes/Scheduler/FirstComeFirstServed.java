@@ -20,15 +20,19 @@ public class FirstComeFirstServed implements Scheduler {
 
     @Override
     public Process getNextProcess() {
-        Process process = null;
         PCB nextProcessPCB = queueManager.getNextReadyProcess();
+
+        if (nextProcessPCB == null) {
+            System.out.println("No hay procesos en la cola de listos");
+            return null;
+        }
+
         try {
-            process = queueManager.getProcessByPCB(nextProcessPCB);
+            Process process = queueManager.getProcessByPCB(nextProcessPCB);
             return process;
         } catch (InterruptedException ex) {
-            
+            System.out.println("Error al obtener el proceso desde la PCB.");
+            return null;
         }
-        
-        return process;
     }
 }

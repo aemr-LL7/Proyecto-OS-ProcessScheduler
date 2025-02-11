@@ -36,10 +36,10 @@ public class Process implements ClockListener {
             System.out.println("Proceso " + pcb.getName() + " está bloqueado y no puede ejecutar instrucciones.");
             return;
         }
+        System.out.println("********"+this.pcb.getName()+ "estoy ejecutando...");
 
-        // Marcar el proceso como RUNNING cuando está en ejecución
-        pcb.setState(ProcessState.RUNNING);
-
+//        // Marcar el proceso como RUNNING cuando está en ejecución
+//        pcb.setState(ProcessState.RUNNING);
         executedInstructions++;
         pcb.setPC(pcb.getPC() + 1);
 
@@ -60,6 +60,7 @@ public class Process implements ClockListener {
             @Override
             public void onTick(int newCycle) {
                 if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
+
                     if (!hasFinished()) {
                         pcb.setState(ProcessState.READY); // Cambiar el estado a READY
                         QueueManager.getInstance().addToReadyQueue(getPcb());
