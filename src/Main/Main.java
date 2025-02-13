@@ -1,6 +1,6 @@
 
-import Classes.OurCPU;
-import Main.Clock;
+import OperativeSystem.OurCPU;
+import OperativeSystem.Clock;
 
 
 /*
@@ -21,9 +21,14 @@ public class Main {
         Clock clock = Clock.getInstance();
         OurCPU cpu1 = new OurCPU();
         clock.start();
-
         cpu1.start();
 
+        
+        
+        
+        
+        
+        
     }
 
 }

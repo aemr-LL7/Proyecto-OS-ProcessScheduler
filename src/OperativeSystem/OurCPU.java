@@ -2,12 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package Classes;
+package OperativeSystem;
 
 import Classes.ProcessFactory.Process;
 import Classes.ProcessFactory.ProcessState;
-import Main.Clock;
-import Main.ClockListener;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -44,28 +42,25 @@ public class OurCPU extends Thread {
     public void run() {
         while (running) {
             try {
+
                 tickSemaphore.acquire(); // Esperar el siguiente tick, semaforo de sincronizacion
+                System.out.println("Estoy procesando");
 
-                if (currentProcess != null) {
-
-                    currentProcess.executeInstruction();
-
-                    // Verificar si el proceso ha terminado
-                    if (currentProcess.hasFinished()) {
-                        System.out.println("CPU ha terminado el proceso: " + currentProcess.getPcb().getName());
-                        //Aqui Manejador de excepciones para eliminar el proceso de ejecucion.
-//                        setIsBusy(false);
-
-                    } // Verificar si el proceso está bloqueado (I/O-bound)
-                    else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
-                        System.out.println("*) CPU detectó que el proceso " + currentProcess.getPcb().getName() + " está bloqueado.");
-                        //QueueManager.getInstance().addToBlockedQueue(currentProcess.getPcb());
-//                        currentProcess = null;
-//                        setIsBusy(false);
-
-                    }
-
-                }
+//                if (currentProcess != null) {
+//
+//                    currentProcess.executeInstruction();
+//
+//                    // Verificar si el proceso ha terminado
+//                    if (currentProcess.hasFinished()) {
+//                        System.out.println("CPU ha terminado el proceso: " + currentProcess.getPcb().getName());
+//
+//                    } // Verificar si el proceso está bloqueado (I/O-bound)
+//                    else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
+//                        System.out.println("*) CPU detectó que el proceso " + currentProcess.getPcb().getName() + " está bloqueado.");
+//
+//                    }
+//
+//                }
             } catch (InterruptedException e) {
                 System.err.println("ERROR CRÍTICO en CPU: " + e.getMessage());
                 stopCPU();

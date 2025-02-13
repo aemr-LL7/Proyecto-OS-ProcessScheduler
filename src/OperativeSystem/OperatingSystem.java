@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package Classes;
+package OperativeSystem;
 
 import Classes.ProcessFactory.DefaultProcessFactory;
 import Classes.ProcessFactory.Process;
@@ -10,8 +10,6 @@ import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
 import EDD.SimpleList;
 import EDD.SimpleNode;
-import Main.Clock;
-import Main.ClockListener;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
@@ -28,6 +26,8 @@ public class OperatingSystem implements ClockListener {
     private final Semaphore tickSemaphore; // Sincronización con Clock
     private final DefaultProcessFactory processFactory;
     private int cycleCount;
+    
+    
 
     private final int processSpawnInterval = 5; // Se generan nuevos procesos cada 15 ciclos
     private final int maxReadyQueueSize = 10; // Limite de procesos en cola de listos antes de generar mas

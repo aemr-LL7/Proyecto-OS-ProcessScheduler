@@ -5,8 +5,8 @@
 package Classes.ProcessFactory;
 
 import Classes.Scheduler.QueueManager;
-import Main.Clock;
-import Main.ClockListener;
+import OperativeSystem.Clock;
+import OperativeSystem.ClockListener;
 
 /**
  *
