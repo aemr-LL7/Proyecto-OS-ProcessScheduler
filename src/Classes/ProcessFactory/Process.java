@@ -12,7 +12,7 @@ import Main.ClockListener;
  *
  * @author Windows 11
  */
-public class Process implements ClockListener {
+public class Process {
 
     private final PCB pcb;
     private int executedInstructions;
@@ -20,15 +20,6 @@ public class Process implements ClockListener {
     public Process(PCB pcb) {
         this.pcb = pcb;
         this.executedInstructions = 0;
-        Clock.getInstance().addListener(this); // Se suscribe al Clock
-    }
-
-    @Override
-    public void onTick(int currentCycle) {
-        // Solo ejecutar instrucciones si el proceso esta en RUNNING
-        if (pcb.getState() == ProcessState.RUNNING && executedInstructions < pcb.getTotalInstructions()) {
-            executeInstruction();
-        }
     }
 
     public void executeInstruction() {
