@@ -42,63 +42,37 @@ public class OurCPU extends Thread {
 
     @Override
     public void run() {
-        while (true) {
+        while (running) {
             try {
-                tickSemaphore.acquire();
-                //De aqui en adelante la la RS del CPU
-                
-                if (currentProcess != null){
-                    currentProcess.executeInstruction();
-                    
-                }
-                
-                
-                
-                
-                
-                
-                
-            } catch (InterruptedException e) {
-            }
+                tickSemaphore.acquire(); // Esperar el siguiente tick, semaforo de sincronizacion
 
+                if (currentProcess != null) {
+
+                    currentProcess.executeInstruction();
+
+                    // Verificar si el proceso ha terminado
+                    if (currentProcess.hasFinished()) {
+                        System.out.println("CPU ha terminado el proceso: " + currentProcess.getPcb().getName());
+                        //Aqui Manejador de excepciones para eliminar el proceso de ejecucion.
+//                        setIsBusy(false);
+
+                    } // Verificar si el proceso está bloqueado (I/O-bound)
+                    else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
+                        System.out.println("*) CPU detectó que el proceso " + currentProcess.getPcb().getName() + " está bloqueado.");
+                        //QueueManager.getInstance().addToBlockedQueue(currentProcess.getPcb());
+//                        currentProcess = null;
+//                        setIsBusy(false);
+
+                    }
+
+                }
+            } catch (InterruptedException e) {
+                System.err.println("ERROR CRÍTICO en CPU: " + e.getMessage());
+                stopCPU();
             }
         }
-        //    @Override
-        //    public void run() {
-        //        while (running) {
-        //            try {
-        //                tickSemaphore.acquire(); // Esperar el siguiente tick, semaforo de sincronizacion
-        //
-        //                if (currentProcess != null) {
-        //                    instructionSemaphore.acquire(); // Bloquear la ejecución de instrucciones
-        //
-        //                    //currentProcess.executeInstruction();
-        //
-        //                    // Verificar si el proceso ha terminado
-        //                    if (currentProcess.hasFinished()) {
-        //                        System.out.println("CPU ha terminado el proceso: " + currentProcess.getPcb().getName());
-        //                        //QueueManager.getInstance().addToFinishedProcessesList(currentProcess.getPcb());
-        //                        currentProcess = null; // Liberar el CPU
-        //                        setIsBusy(false);
-        //                        
-        //                    } // Verificar si el proceso está bloqueado (I/O-bound)
-        //                    else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
-        //                        System.out.println("*) CPU detectó que el proceso " + currentProcess.getPcb().getName() + " está bloqueado.");
-        //                        //QueueManager.getInstance().addToBlockedQueue(currentProcess.getPcb());
-        //                        currentProcess = null;
-        //                        setIsBusy(false);
-        //                         
-        //                    }
-        //
-        //                }
-        //            } catch (InterruptedException e) {
-        //                System.err.println("ERROR CRÍTICO en CPU: " + e.getMessage());
-        //                stopCPU();
-        //            }
-        //        }
-        //    }
-    
-    
+    }
+
     public void stopCPU() {
         this.running = false;
         System.out.println("==================== CPU TERMINATED ====================");

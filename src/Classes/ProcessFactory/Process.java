@@ -13,47 +13,55 @@ import Main.ClockListener;
  * @author Windows 11
  */
 public class Process {
-
+    
     private final PCB pcb;
     private int executedInstructions;
-
+    
     public Process(PCB pcb) {
         this.pcb = pcb;
         this.executedInstructions = 0;
     }
-
+    
     public void executeInstruction() {
         if (pcb.getState() == ProcessState.BLOCKED) {
             System.out.println("Proceso " + pcb.getName() + " está bloqueado y no puede ejecutar instrucciones.");
             return;
         }
         
-        System.out.println("********"+this.pcb.getName()+ "estoy ejecutando...");
+        if (pcb.getState() == ProcessState.FINISHED) {
+            System.out.println("Proceso " + pcb.getName() + "Ha terminado su ejecucion");
+            return;
+        }
+        System.out.println("********" + this.pcb.getName() + "estoy ejecutando...");
 
         // Marcar el proceso como RUNNING cuando está en ejecución
         pcb.setState(ProcessState.RUNNING);
         
         executedInstructions++;
         pcb.setPC(pcb.getPC() + 1);
+        
+        if (this.hasFinished()) {
+            this.pcb.setState(ProcessState.FINISHED);
+        }
 
         // Verificar si se debe lanzar una interrupción I/O
         if (pcb.isIsIOBound() && executedInstructions % pcb.getExceptionCycleThreshold() == 0) {
             handleIOInterruption();
         }
-
+        
     }
-
+    
     private void handleIOInterruption() {
         System.out.println("Proceso " + pcb.getName() + " lanzo una interrupción I/O.");
         pcb.setState(ProcessState.BLOCKED);
-
+        
         ClockListener temporaryListener = new ClockListener() {
             private final int startCycle = Clock.getInstance().getCurrentCycle();
-
+            
             @Override
             public void onTick(int newCycle) {
                 if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
-
+                    
                     if (!hasFinished()) {
                         pcb.setState(ProcessState.READY); // Cambiar el estado a READY
                         QueueManager.getInstance().addToReadyQueue(getPcb());
@@ -64,12 +72,12 @@ public class Process {
                 }
             }
         };
-
+        
         Clock.getInstance().addListener(temporaryListener);
     }
-
+    
     public boolean hasFinished() {
-        return executedInstructions >= pcb.getTotalInstructions();
+        return this.pcb.getState() == ProcessState.FINISHED;
     }
 
     /**
@@ -92,5 +100,5 @@ public class Process {
     public void setExecutedInstructions(int executedInstructions) {
         this.executedInstructions = executedInstructions;
     }
-
+    
 }
