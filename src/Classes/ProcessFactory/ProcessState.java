@@ -12,5 +12,6 @@ public enum ProcessState {
     READY,
     RUNNING,
     BLOCKED,
-    NEW
+    NEW,
+    FINISHED
 }

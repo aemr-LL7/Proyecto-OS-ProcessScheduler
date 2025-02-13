@@ -27,10 +27,12 @@ public class Process {
             System.out.println("Proceso " + pcb.getName() + " está bloqueado y no puede ejecutar instrucciones.");
             return;
         }
+        
         System.out.println("********"+this.pcb.getName()+ "estoy ejecutando...");
 
-//        // Marcar el proceso como RUNNING cuando está en ejecución
-//        pcb.setState(ProcessState.RUNNING);
+        // Marcar el proceso como RUNNING cuando está en ejecución
+        pcb.setState(ProcessState.RUNNING);
+        
         executedInstructions++;
         pcb.setPC(pcb.getPC() + 1);
 

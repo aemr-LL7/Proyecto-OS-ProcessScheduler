@@ -47,6 +47,10 @@ public class OurCPU extends Thread {
                 tickSemaphore.acquire();
                 //De aqui en adelante la la RS del CPU
                 
+                if (currentProcess != null){
+                    currentProcess.executeInstruction();
+                    
+                }
                 
                 
                 
@@ -93,6 +97,8 @@ public class OurCPU extends Thread {
         //            }
         //        }
         //    }
+    
+    
     public void stopCPU() {
         this.running = false;
         System.out.println("==================== CPU TERMINATED ====================");
