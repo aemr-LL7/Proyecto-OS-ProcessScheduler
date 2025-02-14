@@ -5,7 +5,6 @@
 package OperativeSystem;
 
 import EDD.SimpleList;
-import EDD.SimpleNode;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;

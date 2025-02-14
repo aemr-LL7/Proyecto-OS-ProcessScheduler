@@ -33,7 +33,7 @@ public class QueueManager {
     private final Semaphore processTableSemaphore;
     private final Semaphore newProcessesQueueSemaphore;
 
-    private static QueueManager queueInstance = null;
+    private static QueueManager queueInstance;
 
     private QueueManager() {
         this.readyQueue = new OurQueue<>();

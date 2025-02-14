@@ -17,7 +17,9 @@ import java.util.concurrent.Semaphore;
  *
  * @author Windows 11
  */
-public class OperatingSystem implements ClockListener {
+public class OperatingSystem{
+    
+    private static OperatingSystem instance; 
 
     private final QueueManager queueManager;
     private final SimpleList<OurCPU> cpuList;
@@ -32,33 +34,13 @@ public class OperatingSystem implements ClockListener {
     private final int processSpawnInterval = 5; // Se generan nuevos procesos cada 15 ciclos
     private final int maxReadyQueueSize = 10; // Limite de procesos en cola de listos antes de generar mas
 
-    public OperatingSystem(QueueManager queueManager, SimpleList<OurCPU> cpus, Scheduler scheduler, Semaphore tickSemaphore) {
+    private OperatingSystem(QueueManager queueManager, SimpleList<OurCPU> cpus, Scheduler scheduler, Semaphore tickSemaphore) {
         this.queueManager = queueManager;
         this.cpuList = cpus;
         this.scheduler = scheduler;
         this.instructionSemaphore = new Semaphore(1);
         this.tickSemaphore = tickSemaphore;
         this.processFactory = new DefaultProcessFactory();
-        this.cycleCount = 0;
-        Clock.getInstance().addListener(this);
-    }
-
-    @Override
-    public void onTick(int currentCycle) {
-        cycleCount++;
-//
-//        // Generar nuevos procesos cada cierto número de ciclos
-//        if (cycleCount % processSpawnInterval == 0 && queueManager.getReadyQueueSize() < maxReadyQueueSize) {
-//            generateNewProcess();
-//        }
-
-        scheduleProcesses();
-
-        // Verificar si la simulación debe terminar
-        if (allCPUsAreIdle() && queueManager.isEmpty()) {
-            System.out.println("Simulación finalizada: No hay más procesos activos.");
-            System.exit(0);
-        }
     }
 
     private void generateNewProcess() {
