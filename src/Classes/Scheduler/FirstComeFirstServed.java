@@ -5,7 +5,7 @@
 package Classes.Scheduler;
 
 import Classes.ProcessFactory.PCB;
-import Classes.ProcessFactory.Process;
+import Classes.ProcessFactory.OurProcess;
 import EDD.OurQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,8 +18,11 @@ public class FirstComeFirstServed implements Scheduler {
 
     private QueueManager queueManager = QueueManager.getInstance();
 
+    public FirstComeFirstServed() {
+    }
+
     @Override
-    public Process getNextProcess() {
+    public OurProcess getNextProcess() {
         PCB nextProcessPCB = queueManager.getNextReadyProcess();
 
         if (nextProcessPCB == null) {
@@ -28,7 +31,7 @@ public class FirstComeFirstServed implements Scheduler {
         }
 
         try {
-            Process process = queueManager.getProcessByPCB(nextProcessPCB);
+            OurProcess process = queueManager.getProcessByPCB(nextProcessPCB);
             return process;
         } catch (InterruptedException ex) {
             System.out.println("Error al obtener el proceso desde la PCB.");

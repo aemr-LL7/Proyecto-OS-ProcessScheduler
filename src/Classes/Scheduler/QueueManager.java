@@ -5,7 +5,7 @@
 package Classes.Scheduler;
 
 import Classes.ProcessFactory.PCB;
-import Classes.ProcessFactory.Process;
+import Classes.ProcessFactory.OurProcess;
 import EDD.OurHashTable;
 import EDD.OurQueue;
 import EDD.SimpleList;
@@ -23,7 +23,7 @@ public class QueueManager {
     private final OurQueue<PCB> suspendedQueue;
     private final OurQueue<PCB> newProcessesQueue;
     private final SimpleList<PCB> finishedProcesses;
-    private final OurHashTable<Process> processTable;
+    private final OurHashTable<OurProcess> processTable;
 
     // Semáforos para proteger cada cola
     private final Semaphore readyQueueSemaphore;
@@ -137,7 +137,7 @@ public class QueueManager {
         }
     }
 
-    public Process getProcessByPCB(PCB processRef) throws InterruptedException {
+    public OurProcess getProcessByPCB(PCB processRef) throws InterruptedException {
         if (processRef == null) {
             System.out.println("ERROR: Se intento buscar un proceso nullo");
         }
@@ -145,7 +145,7 @@ public class QueueManager {
         this.processTableSemaphore.acquire();
 
         //PCB pcoressPcb = this.readyQueue.pop();
-        Process process = processTable.get(processRef.getId());
+        OurProcess process = processTable.get(processRef.getId());
 
         this.readyQueueSemaphore.release();
         this.processTableSemaphore.release();
@@ -156,7 +156,7 @@ public class QueueManager {
         return process;
     }
 
-    public void hashProcess(Process process) throws InterruptedException {
+    public void hashProcess(OurProcess process) throws InterruptedException {
         this.processTableSemaphore.acquire();
 
         this.processTable.put(process.getPcb().getId(), process);
@@ -164,14 +164,14 @@ public class QueueManager {
         this.processTableSemaphore.release();
     }
 
-    public void addNewProcess(Process process) throws InterruptedException {
+    public void addNewProcess(OurProcess process) throws InterruptedException {
 
         this.hashProcess(process);
         this.addToReadyQueue(process.getPcb());
 
     }
 
-    public OurHashTable<Process> getProcessTable() {
+    public OurHashTable<OurProcess> getProcessTable() {
         return processTable;
     }
 

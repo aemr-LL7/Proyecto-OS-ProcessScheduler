@@ -4,7 +4,7 @@
  */
 package Classes.Scheduler;
 
-import Classes.ProcessFactory.Process;
+import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.ProcessState;
 import EDD.OurQueue;
 
@@ -22,7 +22,7 @@ public class RoundRobin implements Scheduler {
     }
 
     @Override
-    public Process getNextProcess() {
+    public OurProcess getNextProcess() {
         return null;
     }
 }

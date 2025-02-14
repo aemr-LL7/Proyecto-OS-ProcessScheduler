@@ -18,7 +18,7 @@ public class Clock extends Thread {
     private static Clock instance;
     private int currentCycle;
     private int cycleDuration; // Duracion de cada ciclo, en ms
-    private final Semaphore tickSemaphore = new Semaphore(0);
+    private Semaphore tickSemaphore = new Semaphore(0); //Siempre tiene que tener n-1 cantidad de permisos para la cantidad de CPUs activos
     private final SimpleList<ClockListener> listeners;
 
     private Clock() {

@@ -5,7 +5,7 @@
 package Classes.Scheduler;
 
 import Classes.ProcessFactory.PCB;
-import Classes.ProcessFactory.Process;
+import Classes.ProcessFactory.OurProcess;
 
 /**
  *
@@ -14,6 +14,6 @@ import Classes.ProcessFactory.Process;
  */
 public interface Scheduler {
 
-    Process getNextProcess(); // Obtener el siguiente proceso según la política
+    OurProcess getNextProcess(); // Obtener el siguiente proceso según la política
 
 }

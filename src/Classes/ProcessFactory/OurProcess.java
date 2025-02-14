@@ -12,12 +12,12 @@ import OperativeSystem.ClockListener;
  *
  * @author Windows 11
  */
-public class Process {
+public class OurProcess {
 
     private final PCB pcb;
     private int executedInstructions;
 
-    public Process(PCB pcb) {
+    public OurProcess(PCB pcb) {
         this.pcb = pcb;
         this.executedInstructions = 0;
     }

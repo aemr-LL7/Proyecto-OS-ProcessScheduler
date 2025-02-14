@@ -12,7 +12,7 @@ public abstract class ProcessFactory {
 
     protected static int idCounter = 1;
 
-    public abstract Process createProcess(String name, int instructions, boolean isIOBound, int exceptionCycleNumber, int resolutionCycles);
+    public abstract OurProcess createProcess(String name, int instructions, boolean isIOBound, int exceptionCycleNumber, int resolutionCycles);
 
     protected String generateUniqueId() {
         return "u" + idCounter++;
