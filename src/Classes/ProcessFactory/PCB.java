@@ -20,6 +20,7 @@ public class PCB {
     private int exceptionCycleThreshold;  // Cada cuantas instrucciones se lanza una interrupcion (para I/O-bound)
     private int exceptionSolveNumber;          // Numero de ciclos para resolver la excepción
 
+
     public PCB(String id, String name, int totalInstructions, boolean isIOBound, int exceptionCycleThreshold, int exceptionSolveNumber) {
         this.id = id;
         this.name = name;
@@ -32,9 +33,6 @@ public class PCB {
         this.exceptionSolveNumber = exceptionSolveNumber;
     }
 
-    public void updateState(ProcessState newState) {
-        this.setState(newState);
-    }
 
     /**
      * @return the id
@@ -162,5 +160,4 @@ public class PCB {
         this.exceptionSolveNumber = exceptionSolveNumber;
     }
 
-    
 }

@@ -7,6 +7,7 @@ package Classes.ProcessFactory;
 import Classes.Scheduler.QueueManager;
 import OperativeSystem.Clock;
 import OperativeSystem.ClockListener;
+import OperativeSystem.ExceptionHandler;
 
 /**
  *
@@ -27,13 +28,13 @@ public class OurProcess {
             System.out.println("Proceso " + pcb.getName() + "Ha terminado su ejecucion");
             return;
         }
-        
+
         if (pcb.getState() == ProcessState.BLOCKED) {
-            System.out.println("Proceso " + pcb.getName() + " está bloqueado y no puede ejecutar instrucciones.");
+            System.out.println("Proceso " + pcb.getName() + " esta bloqueado y no puede ejecutar instrucciones");
             return;
         }
 
-        System.out.println("********" + this.pcb.getName() + "estoy ejecutando...");
+        System.out.println("\n* PROCESO: " + this.pcb.getName() + ", estoy ejecutando...");
 
         // Marcar el proceso como RUNNING cuando está en ejecución
         pcb.setState(ProcessState.RUNNING);
@@ -42,12 +43,16 @@ public class OurProcess {
         pcb.setPC(pcb.getPC() + 1);
 
         if (this.hasFinished()) {
+            System.out.println("TERMINE DE EJECUTAR MIS INSTRUCCIONES BRAV");
             this.pcb.setState(ProcessState.FINISHED);
         }
 
         // Verificar si se debe lanzar una interrupción I/O
         if (pcb.isIsIOBound() && executedInstructions % pcb.getExceptionCycleThreshold() == 0) {
-            handleIOInterruption();
+            // Llamar al manejador de excepciones para mover el proceso a bloqueados
+            System.out.println("Proceso " + pcb.getName() + " lanzo una interrupción I/O.");
+            pcb.setState(ProcessState.BLOCKED);
+           
         }
 
     }
@@ -78,7 +83,7 @@ public class OurProcess {
     }
 
     public boolean hasFinished() {
-        return this.pcb.getState() == ProcessState.FINISHED;
+        return this.executedInstructions > this.getPcb().getTotalInstructions();
     }
 
     /**

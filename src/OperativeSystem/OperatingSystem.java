@@ -6,6 +6,7 @@ package OperativeSystem;
 
 import Classes.ProcessFactory.DefaultProcessFactory;
 import Classes.ProcessFactory.OurProcess;
+import Classes.ProcessFactory.ProcessState;
 import Classes.Scheduler.FirstComeFirstServed;
 import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
@@ -18,25 +19,27 @@ import java.util.concurrent.Semaphore;
  *
  * @author Windows 11
  */
-public final class OperatingSystem {
+public final class OperatingSystem implements Runnable {
+
     private static OperatingSystem instance;
-    private final ExceptionHandler exceptionHandler = ExceptionHandler.getInstance();
-    private final QueueManager queueManager = QueueManager.getInstance();
+    private final DefaultProcessFactory processFactory;
     private SimpleList<OurCPU> cpuList;
     private Scheduler scheduler;
+
     private final Semaphore tickSemaphore = Clock.getInstance().getTickSemaphore(); // Sincronización con Clock
-    private final DefaultProcessFactory processFactory;
     private final Clock systemClock = Clock.getInstance();
-    private int cycleCount;
+    private final ExceptionHandler exceptionHandler = ExceptionHandler.getInstance();
+    private final QueueManager queueManager = QueueManager.getInstance();
 
     private final int processSpawnInterval = 5; // Se generan nuevos procesos cada 15 ciclos
     private final int maxReadyQueueSize = 10; // Límite de procesos en cola de listos antes de generar más
+    private int cycleCount = 0;
 
     // Constructor privado para evitar instanciación externa
     private OperatingSystem() {
         this.scheduler = new FirstComeFirstServed(); // Inicializamos con esta porque podemos y ya
         this.processFactory = new DefaultProcessFactory();
-        this.initializeProcessors();
+        //this.startSystem();
     }
 
     // Método para obtener la instancia única
@@ -47,65 +50,133 @@ public final class OperatingSystem {
         return instance;
     }
 
-    public void initializeProcessors() {
-        SimpleList<OurCPU> cpuList = new SimpleList<>();
-        
-        // Empezamos la simulación con 2 procesadores
-        OurCPU cpu1 = new OurCPU();
-        cpu1.setName("CPU1");
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                // Espera al siguiente ciclo
+                cycleCount++;
+                //System.out.println("[OS] Tick recibido: ciclo " + cycleCount);
 
-        OurCPU cpu2 = new OurCPU();
-        cpu2.setName("CPU2");
+//                // Generar nuevos procesos cada ciertos ciclos
+//                if (cycleCount % processSpawnInterval == 0 && queueManager.getReadyQueueSize() < maxReadyQueueSize) {
+//                    generateNewProcess();
+//                }
+                // Asignar procesos desde las colas de listos o bloqueados
+                this.scheduleProcesses();
+                Thread.sleep(systemClock.getCycleDuration()); // Espera de 1 segundo (simulando un ciclo)
 
-        cpuList.addAtTheEnd(cpu1);
-        cpuList.addAtTheEnd(cpu2);
-        
-        this.setCpuList(cpuList);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    private void addProcessor() {
+    public void startSystem() {
+        // Empezamos la simulación con 2 procesadores
+        this.initializeProcessors(1);
+        this.initializeProcesses(1);
+
+        systemClock.start();
+        new Thread(this).start();  // Iniciar el sistema operativo en su propio hilo
+        this.startAllCPUs();
+        System.out.println(" ====> Sistema Operativo iniciado");
+
+    }
+
+    private void initializeProcessors(int numOfCPUs) {
+        SimpleList<OurCPU> auxCpuList = new SimpleList<>();
+
+        for (int i = 0; i < numOfCPUs; i++) {
+            OurCPU cpu = new OurCPU(i);
+            cpu.setName("CPU" + (i + 1));
+            auxCpuList.addAtTheEnd(cpu);
+        }
+
+        this.setCpuList(auxCpuList);
+    }
+
+    private void initializeProcesses(int numProcesses) {
+        Random random = new Random();
+
+        for (int i = 1; i <= numProcesses; i++) {
+            int instructions = random.nextInt(10) + 15; // Entre 15 y 25 instrucciones
+            boolean isIOBound = random.nextBoolean(); // Proceso con I/O aleatorio
+            int exceptionThreshold = isIOBound ? (random.nextInt(4) + 2) : 0; // Cada cuántas instrucciones lanza una interrupción
+            int resolutionCycles = isIOBound ? (random.nextInt(3) + 1) : 0; // Ciclos para resolver I/O
+
+            OurProcess newProcess = processFactory.createProcess("P" + i, instructions, true, 8, 6);
+
+            if (newProcess != null) {
+                System.out.println("[OS] Proceso creado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones.");
+            } else {
+                System.out.println("\nError al crear el proceso P" + i);
+            }
+        }
+    }
+
+    private void startAllCPUs() {
+        SimpleNode<OurCPU> current = cpuList.getpFirst();
+        while (current != null) {
+            OurCPU cpu = current.getData();
+            cpu.start();
+            current = current.getpNext();
+        }
+    }
+
+    public void addProcessor() {
         int cpuNumber = this.getCpuList().getSize() + 1;
         String cpuName = "CPU" + cpuNumber;
-        
+
         // Crear el nuevo CPU y renombrar el thread
-        OurCPU newCpu = new OurCPU();
+        OurCPU newCpu = new OurCPU(cpuNumber);
         newCpu.setName(cpuName);
-        
-        // yallready know it
+
+        // yallready know it - thats curious brav
         this.getCpuList().addAtTheEnd(newCpu);
+        System.out.println("\n[OS] Nuevo CPU añadido: " + newCpu.getCpuId() + "\nList size: " + this.getCpuList().getSize());
+        this.getCpuList().printList();
     }
-    
+
     private void removeProcessor() {
         // CÓMO MONDA VAMOS A QUITAR UN PROCESADOR
     }
-    
+
     private void generateNewProcess() {
-        if (queueManager.getReadyQueueSize() >= maxReadyQueueSize) {
+        if (getQueueManager().getReadyQueueSize() >= maxReadyQueueSize) {
             System.out.println("Cola de listos llena, no se generan nuevos procesos.");
             return;
         }
 
         Random random = new Random();
-        int instructions = random.nextInt(10) + 5; // Entre 5 y 15 instrucciones
-        boolean isIOBound = random.nextBoolean();
-        int exceptionThreshold = isIOBound ? (random.nextInt(4) + 2) : 0;
-        int resolutionCycles = isIOBound ? (random.nextInt(3) + 1) : 0;
+        int instructions = random.nextInt(10) + 20; // Entre 20 y 30 instrucciones
+            boolean isIOBound = random.nextBoolean(); // Proceso con I/O aleatorio
+            int exceptionThreshold = isIOBound ? (random.nextInt(4) + 4) : 0; // Cada cuántas instrucciones lanza una interrupción
+            int resolutionCycles = isIOBound ? (random.nextInt(3) + 5) : 0; // Ciclos para resolver I/O
 
-        OurProcess newProcess = processFactory.createProcess("P" + cycleCount, instructions, isIOBound, exceptionThreshold, resolutionCycles);
+            OurProcess newProcess = processFactory.createProcess("P" + this.cycleCount, instructions, isIOBound, exceptionThreshold, resolutionCycles);
 
-        System.out.println("Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
+        System.out.println("\n[OS] Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
     }
 
     private void scheduleProcesses() {
-        System.out.println("Intentando asignar procesos en el ciclo " + Clock.getInstance().getCurrentCycle());
+        // Si no hay procesos en la cola de listos se genera uno nuevo
+        if (queueManager.getReadyQueueSize() == 0) {
+            System.out.println("\n[OS] La cola de listos esta vacia!!");           
+            return;
+        }
+
+        // Asignar procesos al CPU si hay alguno en la cola de listos
         for (int i = 0; i < cpuList.getSize(); i++) {
             OurCPU cpu = cpuList.getValueByIndex(i);
-            System.out.println("Estado del CPU-" + i + " -> " + cpu.isIsBusy());
+
             if (!cpu.isIsBusy()) { // Solo asignar si el CPU está libre
                 OurProcess nextProcess = scheduler.getNextProcess();
                 if (nextProcess != null) {
-                    cpu.executeProcess(nextProcess);
-                    System.out.println("==> Asignando proceso " + nextProcess.getPcb().getName() + " al CPU " + i);
+                    cpu.executeProcess(nextProcess);  // Asignar el proceso al CPU
+                    System.out.println("\n[OS] ==> Asignando proceso " + nextProcess.getPcb().getName() + " al CPU " + i);
+                } else {
+                    System.out.println("\n[OS] No hay procesos disponibles para el CPU " + i);
                 }
             }
         }
@@ -152,5 +223,19 @@ public final class OperatingSystem {
 
     public void setCycleCount(int cycleCount) {
         this.cycleCount = cycleCount;
+    }
+
+    /**
+     * @return the queueManager
+     */
+    public QueueManager getQueueManager() {
+        return queueManager;
+    }
+
+    /**
+     * @return the exceptionHandler
+     */
+    public ExceptionHandler getExceptionHandler() {
+        return exceptionHandler;
     }
 }

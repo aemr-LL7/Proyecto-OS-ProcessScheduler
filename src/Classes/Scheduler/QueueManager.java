@@ -10,6 +10,7 @@ import EDD.OurHashTable;
 import EDD.OurQueue;
 import EDD.SimpleList;
 import Classes.ProcessFactory.ProcessState;
+import EDD.SimpleNode;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -98,11 +99,53 @@ public class QueueManager {
             getFinishedQueueSemaphore().acquire();
 
             getFinishedProcesses().addAtTheEnd(process);
-            System.out.println("∎ Proceso " + process.getName() + " finalizado, movido a la lista de TERMINADOS.");
+            System.out.println("\nProceso " + process.getName() + " finalizado, movido a la lista de TERMINADOS.");
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             getFinishedQueueSemaphore().release();
+        }
+    }
+
+    public void moveToReadyQueue(PCB processPCB) {
+        try {
+            if (processPCB != null) {
+                this.blockedQueueSemaphore.acquire(); 
+
+                // Variable para guardar el proceso a mover
+                SimpleNode<PCB> currentNode = this.blockedQueue.getpFirst();
+                SimpleNode<PCB> previousNode = null;
+
+                while (currentNode != null) {
+                    if (currentNode.getData().equals(processPCB)) {
+                        // Si encontramos el proceso, lo movemos a la cola de listos
+                        if (previousNode == null) {
+                            // Si el nodo es el primero en la lista
+                            this.blockedQueue.setpFirst(currentNode.getpNext());  // Eliminamos el nodo de la cola de bloqueados
+                        } else {
+                            // Si el nodo no es el primero
+                            previousNode.setpNext(currentNode.getpNext());  // Desconectamos el nodo de la lista de bloqueados
+                        }
+
+                        // Ahora insertamos el proceso en la cola de listos
+                        this.readyQueueSemaphore.acquire();
+                        this.readyQueue.insert(currentNode.getData());
+                        //System.out.println("Proceso " + processPCB.getName() + " DESBLOQUEADO, ha vuelto a la cola de LISTOS");
+
+                        // Salimos del bucle ya que hemos encontrado y movido el proceso
+                        break;
+                    }
+                    previousNode = currentNode;
+                    currentNode = currentNode.getpNext();  // Avanzamos al siguiente nodo en la cola de bloqueados
+                }
+
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            this.blockedQueueSemaphore.release();  // Liberamos el semáforo de bloqueados
+            this.readyQueueSemaphore.release();  // Liberamos el semáforo de listos
         }
     }
 
@@ -152,7 +195,7 @@ public class QueueManager {
         if (process == null) {
             System.out.println("ERROR: No se encontro el proceso en la tabla de procesos");
         }
-        
+
         return process;
     }
 

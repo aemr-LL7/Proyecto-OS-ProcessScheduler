@@ -14,13 +14,15 @@ import java.util.concurrent.Semaphore;
  */
 public class OurCPU extends Thread {
 
+    private final int cpuId;
     private OurProcess currentProcess;
     private final Semaphore tickSemaphore = Clock.getInstance().getTickSemaphore(); // Para esperar cada tick
     private boolean running;
     private boolean isBusy;
     private boolean paused;
 
-    public OurCPU() {
+    public OurCPU(int id) {
+        this.cpuId = id;
         this.currentProcess = null;
         this.paused = false;
         this.running = true;
@@ -37,7 +39,7 @@ public class OurCPU extends Thread {
         this.isBusy = true;
         // Actualizamos el estado a RUNNING al iniciar la ejecucion
         process.getPcb().setState(ProcessState.RUNNING);
-        System.out.println("OurCPU esta ejecutando el proceso: " + process.getPcb().getName());
+        System.out.println("OurCPU " + this.getCpuId() + " esta ejecutando el proceso: " + process.getPcb().getName());
     }
 
     @Override
@@ -49,9 +51,9 @@ public class OurCPU extends Thread {
                         wait();//bloquear hasta que se haga notify
                     }
                 }
-                
+
                 tickSemaphore.acquire(); // Esperar el siguiente tick, semaforo de sincronizacion
-                System.out.println("Estoy procesando");
+                //System.out.println("CPU_" + this.cpuId + " - Estoy procesando");
 
                 if (currentProcess != null) {
 
@@ -59,20 +61,32 @@ public class OurCPU extends Thread {
 
                     // Verificar si el proceso ha terminado
                     if (currentProcess.hasFinished()) {
-                        System.out.println("CPU ha terminado el proceso: " + currentProcess.getPcb().getName());
+                        System.out.println("\n(CPU_" + this.getCpuId() + ") ha terminado el proceso: " + currentProcess.getPcb().getName());
+                        this.clearCurrentProcess();
 
                     } // Verificar si el proceso está bloqueado (I/O-bound)
                     else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
-                        System.out.println("CPU detectó que el proceso " + currentProcess.getPcb().getName() + " está bloqueado.");
+                        System.out.println("\nCPU detectó que el proceso " + currentProcess.getPcb().getName() + " esta bloqueado");
+                        OperatingSystem.getInstance().getExceptionHandler().IOInterruption(currentProcess);
 
                     }
 
+                } else {
+                    System.out.println("(CPU_" + this.getCpuId() + ") -> Estoy sin procesos brav -> Estado ocupado: " + this.isBusy);
                 }
+
             } catch (InterruptedException e) {
                 System.err.println("ERROR CRÍTICO en CPU: " + e.getMessage());
-                stopCPU();
+                Thread.currentThread().interrupt();
+                break;
             }
         }
+    }
+
+    public void clearCurrentProcess() {
+        OperatingSystem.getInstance().getQueueManager().addToFinishedProcessesList(this.currentProcess.getPcb());
+        this.currentProcess = null;
+        this.setIsBusy(false);
     }
 
     public synchronized void pauseCPU() {
@@ -117,6 +131,13 @@ public class OurCPU extends Thread {
 
     public void setRunning(boolean running) {
         this.running = running;
+    }
+
+    /**
+     * @return the cpuId
+     */
+    public int getCpuId() {
+        return cpuId;
     }
 
 }

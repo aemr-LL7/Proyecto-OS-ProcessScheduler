@@ -1,6 +1,7 @@
 
 import OperativeSystem.OurCPU;
 import OperativeSystem.Clock;
+import OperativeSystem.OperatingSystem;
 
 
 /*
@@ -18,17 +19,11 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        Clock clock = Clock.getInstance();
-        OurCPU cpu1 = new OurCPU();
-        clock.start();
-        cpu1.start();
+        OperatingSystem ourOS = OperatingSystem.getInstance();
+        ourOS.startSystem();
+        //ourOS.scheduleProcesses();
+        //ourOS.addProcessor();
 
-        
-        
-        
-        
-        
-        
     }
 
 }

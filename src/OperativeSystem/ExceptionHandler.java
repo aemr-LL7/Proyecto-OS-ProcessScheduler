@@ -6,6 +6,8 @@ package OperativeSystem;
 
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.PCB;
+import Classes.ProcessFactory.ProcessState;
+import Classes.Scheduler.QueueManager;
 import EDD.SimpleList;
 import EDD.SimpleNode;
 import java.util.concurrent.Semaphore;
@@ -39,15 +41,25 @@ public class ExceptionHandler {
 
         while (auxNode != null) {
             OurCPU cpu = auxNode.getData();
+            // Si el proceso interrumpido es el que se está ejecutando en este CPU
             if (cpu.getCurrentProcess() != null && cpu.getCurrentProcess().equals(process)) {
-                cpu.pauseCPU();           // Pausar la ejecución del CPU
-                cpu.setCurrentProcess(null);  // Limpiar el proceso actual
-                cpu.resumeCPU();         //reanudar
-                System.out.println("Te interrumpi mmg: " + process.getPcb().getName());
-                break; 
+
+                cpu.pauseCPU(); // Pausar la ejecución del CPU
+                QueueManager.getInstance().addToBlockedQueue(process.getPcb());
+                cpu.setCurrentProcess(null); // Limpiar el proceso actual
+                cpu.setIsBusy(false);
+                cpu.resumeCPU(); // Reanudar el CPU para que ejecute otros procesos
+
+                System.out.println("[EH] Proceso " + process.getPcb().getName() + " interrumpido y movido a bloqueados");
+
+                // Agregar listener al Clock para resolver la espera de I/O ????
+
+                break;
             }
             auxNode = auxNode.getpNext();
         }
     }
+
+
 
 }

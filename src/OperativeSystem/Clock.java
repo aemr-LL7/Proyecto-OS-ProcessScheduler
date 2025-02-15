@@ -23,7 +23,7 @@ public class Clock extends Thread {
 
     private Clock() {
         this.currentCycle = 0;
-        this.cycleDuration = 500;
+        this.cycleDuration = 1000;
         this.listeners = new SimpleList<>();
         this.setName("Clock Thread");
     }
@@ -47,10 +47,11 @@ public class Clock extends Thread {
     public void run() {
         while (true) {
             try {
-
+                
                 // Notifica a cada listener
                 System.out.println("Clock tick: ciclo " + currentCycle);
                 currentCycle++;
+                
                 this.tickSemaphore.release();
 
                 //Listeners

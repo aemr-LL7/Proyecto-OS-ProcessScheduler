@@ -26,7 +26,7 @@ public class FirstComeFirstServed implements Scheduler {
         PCB nextProcessPCB = queueManager.getNextReadyProcess();
 
         if (nextProcessPCB == null) {
-            System.out.println("No hay procesos en la cola de listos");
+            System.out.println("[FCFS]\nNo hay procesos en la cola de listos");
             return null;
         }
 
