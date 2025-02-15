@@ -1,13 +1,12 @@
-
-import OperativeSystem.OurCPU;
-import OperativeSystem.Clock;
-import OperativeSystem.OperatingSystem;
-
-
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
+
+package Main;
+
+import OperativeSystem.OperatingSystem;
+
 /**
  *
  * @author Windows 11
@@ -21,6 +20,7 @@ public class Main {
         // TODO code application logic here
         OperatingSystem ourOS = OperatingSystem.getInstance();
         ourOS.startSystem();
+        // Probando probando probando ah
         //ourOS.scheduleProcesses();
         //ourOS.addProcessor();
 
