@@ -50,8 +50,7 @@ public class OurProcess {
         // Verificar si se debe lanzar una interrupción I/O
         if (pcb.isIsIOBound() && executedInstructions % pcb.getExceptionCycleThreshold() == 0) {
             // Llamar al manejador de excepciones para mover el proceso a bloqueados
-            System.out.println("Proceso " + pcb.getName() + " lanzo una interrupción I/O.");
-            pcb.setState(ProcessState.BLOCKED);
+            handleIOInterruption();
            
         }
 
@@ -66,6 +65,8 @@ public class OurProcess {
 
             @Override
             public void onTick(int newCycle) {
+                pcb.setMAR(pcb.getMAR()+1);
+                System.out.println("Proceso " + pcb.getName() + " ha aumentado en 1 su MAR.");
                 if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
 
                     if (!hasFinished()) {

@@ -5,6 +5,7 @@
 package OperativeSystem;
 
 import EDD.SimpleList;
+import EDD.SimpleNode;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -54,17 +55,17 @@ public class Clock extends Thread {
                 
                 this.tickSemaphore.release();
 
-                //Listeners
-//            SimpleNode<ClockListener> current = listeners.getpFirst();
-//            while (current != null) {
-//                current.getData().onTick(currentCycle);
-//                current = current.getpNext();
-//            }
-//            try {
-//                Thread.sleep(cycleDuration);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+            //Listeners
+            SimpleNode<ClockListener> current = listeners.getpFirst();
+            while (current != null) {
+                current.getData().onTick(currentCycle);
+                current = current.getpNext();
+            }
+            try {
+                Thread.sleep(cycleDuration);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
                 Thread.sleep(cycleDuration);
             } catch (InterruptedException ex) {
                 Logger.getLogger(Clock.class.getName()).log(Level.SEVERE, null, ex);

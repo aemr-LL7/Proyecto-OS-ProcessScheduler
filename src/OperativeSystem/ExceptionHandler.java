@@ -35,7 +35,8 @@ public class ExceptionHandler {
         return instance;
     }
 
-    public void IOInterruption(OurProcess process) {
+    //Intento viejo de llamar interrupcion desde dentro del proceso
+    public void interruprCPU(OurProcess process) {
         SimpleList<OurCPU> cpuList = OperatingSystem.getInstance().getCpuList();
         SimpleNode<OurCPU> auxNode = cpuList.getpFirst();
 
@@ -53,13 +54,25 @@ public class ExceptionHandler {
                 System.out.println("[EH] Proceso " + process.getPcb().getName() + " interrumpido y movido a bloqueados");
 
                 // Agregar listener al Clock para resolver la espera de I/O ????
-
                 break;
             }
             auxNode = auxNode.getpNext();
         }
     }
 
+    //Excepcion 
+    public void interruptCPU(OurCPU cpu) {
 
+        OurProcess process = cpu.getCurrentProcess();
+//        cpu.pauseCPU(); // Pausar la ejecución del CPU
+        QueueManager.getInstance().addToBlockedQueue(process.getPcb());
+        cpu.setCurrentProcess(null); // Limpiar el proceso actual
+        cpu.setIsBusy(false);
+//        cpu.resumeCPU(); // Reanudar el CPU para que ejecute otros procesos
+
+        System.out.println("[EH] Proceso " + process.getPcb().getName() + " interrumpido y movido a bloqueados");
+
+        // Agregar listener al Clock para resolver la espera de I/O ????
+    }
 
 }
