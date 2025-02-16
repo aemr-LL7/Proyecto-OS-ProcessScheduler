@@ -19,7 +19,7 @@ import java.util.concurrent.Semaphore;
  *
  * @author Windows 11
  */
-public final class OperatingSystem implements Runnable {
+public final class OperatingSystem extends Thread {
 
     private static OperatingSystem instance;
     private final DefaultProcessFactory processFactory;
@@ -33,12 +33,12 @@ public final class OperatingSystem implements Runnable {
 
     private final int processSpawnInterval = 5; // Se generan nuevos procesos cada 15 ciclos
     private final int maxReadyQueueSize = 10; // Límite de procesos en cola de listos antes de generar más
-    private int cycleCount = 0;
 
     // Constructor privado para evitar instanciación externa
     private OperatingSystem() {
         this.scheduler = new FirstComeFirstServed(); // Inicializamos con esta porque podemos y ya
         this.processFactory = new DefaultProcessFactory();
+        this.setName("SSOO Thread");
         //this.startSystem();
     }
 
@@ -55,16 +55,11 @@ public final class OperatingSystem implements Runnable {
         while (true) {
             try {
                 // Espera al siguiente ciclo
-                cycleCount++;
-                //System.out.println("[OS] Tick recibido: ciclo " + cycleCount);
+                tickSemaphore.acquire();
 
-//                // Generar nuevos procesos cada ciertos ciclos
-//                if (cycleCount % processSpawnInterval == 0 && queueManager.getReadyQueueSize() < maxReadyQueueSize) {
-//                    generateNewProcess();
-//                }
                 // Asignar procesos desde las colas de listos o bloqueados
                 this.scheduleProcesses();
-                Thread.sleep(systemClock.getCycleDuration()); // Espera de 1 segundo (simulando un ciclo)
+
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -134,7 +129,7 @@ public final class OperatingSystem implements Runnable {
 
         // yallready know it - thats curious brav
         this.getCpuList().addAtTheEnd(newCpu);
-        System.out.println("\n[OS] Nuevo CPU añadido: " + newCpu.getCpuId() + "\nList size: " + this.getCpuList().getSize());
+        System.out.println("[OS] Nuevo CPU añadido: " + newCpu.getCpuId() + "\nList size: " + this.getCpuList().getSize()+"\n");
         this.getCpuList().printList();
     }
 
@@ -150,11 +145,11 @@ public final class OperatingSystem implements Runnable {
 
         Random random = new Random();
         int instructions = random.nextInt(10) + 20; // Entre 20 y 30 instrucciones
-            boolean isIOBound = random.nextBoolean(); // Proceso con I/O aleatorio
-            int exceptionThreshold = isIOBound ? (random.nextInt(4) + 4) : 0; // Cada cuántas instrucciones lanza una interrupción
-            int resolutionCycles = isIOBound ? (random.nextInt(3) + 5) : 0; // Ciclos para resolver I/O
+        boolean isIOBound = random.nextBoolean(); // Proceso con I/O aleatorio
+        int exceptionThreshold = isIOBound ? (random.nextInt(4) + 4) : 0; // Cada cuántas instrucciones lanza una interrupción
+        int resolutionCycles = isIOBound ? (random.nextInt(3) + 5) : 0; // Ciclos para resolver I/O
 
-            OurProcess newProcess = processFactory.createProcess("P" + this.cycleCount, instructions, isIOBound, exceptionThreshold, resolutionCycles);
+        OurProcess newProcess = processFactory.createProcess("P" + Clock.getInstance().getCurrentCycle(), instructions, isIOBound, exceptionThreshold, resolutionCycles);
 
         System.out.println("\n[OS] Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
     }
@@ -162,7 +157,7 @@ public final class OperatingSystem implements Runnable {
     private void scheduleProcesses() {
         // Si no hay procesos en la cola de listos se genera uno nuevo
         if (queueManager.getReadyQueueSize() == 0) {
-            System.out.println("\n[OS] La cola de listos esta vacia!!");           
+            System.out.println("\n[OS] La cola de listos esta vacia!!");
             return;
         }
 
@@ -215,14 +210,6 @@ public final class OperatingSystem implements Runnable {
 
     public void setCpuList(SimpleList<OurCPU> cpuList) {
         this.cpuList = cpuList;
-    }
-
-    public int getCycleCount() {
-        return cycleCount;
-    }
-
-    public void setCycleCount(int cycleCount) {
-        this.cycleCount = cycleCount;
     }
 
     /**

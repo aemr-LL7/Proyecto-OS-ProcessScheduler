@@ -7,7 +7,7 @@ package Classes.ProcessFactory;
 import Classes.Scheduler.QueueManager;
 import OperativeSystem.Clock;
 import OperativeSystem.ClockListener;
-import OperativeSystem.ExceptionHandler;
+
 
 /**
  *
@@ -34,7 +34,7 @@ public class OurProcess {
             return;
         }
 
-        System.out.println("\n* PROCESO: " + this.pcb.getName() + ", estoy ejecutando...");
+//        System.out.println("\n* PROCESO: " + this.pcb.getName() + ", estoy ejecutando...");
 
         // Marcar el proceso como RUNNING cuando está en ejecución
         pcb.setState(ProcessState.RUNNING);
