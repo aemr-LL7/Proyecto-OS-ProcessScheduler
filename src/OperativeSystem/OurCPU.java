@@ -21,6 +21,7 @@ public class OurCPU extends Thread {
     private boolean running;
     private boolean isBusy;
     private boolean interruptionDetected = false;
+    private int quantum = 0;
 
     public OurCPU(int id) {
         this.cpuId = id;
@@ -80,6 +81,8 @@ public class OurCPU extends Thread {
                     ExceptionHandler.getInstance().interruptCPU(this);
                 }
 
+                OperatingSystem.getInstance().getScheduler().checkFlags(this);
+                
             } catch (InterruptedException e) {
                 System.err.println("ERROR CRÍTICO en CPU: " + e.getMessage());
                 Thread.currentThread().interrupt();

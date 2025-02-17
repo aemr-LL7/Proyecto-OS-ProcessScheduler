@@ -18,7 +18,8 @@ public class PCB {
     private int totalInstructions;
     private boolean isIOBound;
     private int exceptionCycleThreshold;  // Cada cuantas instrucciones se lanza una interrupcion (para I/O-bound)
-    private int exceptionSolveNumber;          // Numero de ciclos para resolver la excepción
+    private int exceptionSolveNumber;          // Numero de ciclos para resolver la excepción 
+    private int quantum = 0;
 
 
     public PCB(String id, String name, int totalInstructions, boolean isIOBound, int exceptionCycleThreshold, int exceptionSolveNumber) {

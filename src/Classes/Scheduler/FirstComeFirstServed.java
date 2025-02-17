@@ -6,6 +6,7 @@ package Classes.Scheduler;
 
 import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.OurProcess;
+import OperativeSystem.OurCPU;
 /**
  *
  * @author Windows 11 ###### Re-estructurar
@@ -31,5 +32,10 @@ public class FirstComeFirstServed implements Scheduler {
             System.out.println("Error al obtener el proceso desde la PCB.");
             return null;
         }
+    }
+
+    @Override
+    public void checkFlags(OurCPU cpu) {
+        
     }
 }

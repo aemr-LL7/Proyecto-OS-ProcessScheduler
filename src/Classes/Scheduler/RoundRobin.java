@@ -7,6 +7,7 @@ package Classes.Scheduler;
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.ProcessState;
 import EDD.OurQueue;
+import OperativeSystem.OurCPU;
 
 /**
  *
@@ -24,5 +25,10 @@ public class RoundRobin implements Scheduler {
     @Override
     public OurProcess getNextProcess() {
         return null;
+    }
+
+    @Override
+    public void checkFlags(OurCPU cpu) {
+
     }
 }

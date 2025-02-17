@@ -6,6 +6,7 @@ package Classes.Scheduler;
 
 import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.OurProcess;
+import OperativeSystem.OurCPU;
 
 /**
  *
@@ -15,5 +16,7 @@ import Classes.ProcessFactory.OurProcess;
 public interface Scheduler {
 
     OurProcess getNextProcess(); // Obtener el siguiente proceso según la política
+    
+    void checkFlags(OurCPU cpu);
 
 }

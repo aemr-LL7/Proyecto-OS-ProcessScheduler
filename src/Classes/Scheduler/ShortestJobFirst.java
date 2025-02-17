@@ -4,12 +4,10 @@
  */
 package Classes.Scheduler;
 
-import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.ProcessState;
 import EDD.SimpleNode;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import OperativeSystem.OurCPU;
 
 /**
  *
@@ -59,5 +57,10 @@ public class ShortestJobFirst implements Scheduler {
         queueManager.getReadyQueueSemaphore().release();
         queueManager.getNewProcessesQueueSemaphore().release();
         return null;
+    }
+    
+    @Override
+    public void checkFlags(OurCPU cpu){
+        
     }
 }
