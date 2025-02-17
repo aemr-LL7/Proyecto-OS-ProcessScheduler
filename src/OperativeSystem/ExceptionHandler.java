@@ -11,6 +11,8 @@ import Classes.Scheduler.QueueManager;
 import EDD.SimpleList;
 import EDD.SimpleNode;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,45 +36,57 @@ public class ExceptionHandler {
         }
         return instance;
     }
+    
+    public void interruptCPU(OurProcess process) {
+        try {
+            this.mutex.acquire(); // Adquirir el semáforo antes de acceder a la sección crítica
 
-    //Intento viejo de llamar interrupcion desde dentro del proceso
-    public void interruprCPU(OurProcess process) {
-        SimpleList<OurCPU> cpuList = OperatingSystem.getInstance().getCpuList();
-        SimpleNode<OurCPU> auxNode = cpuList.getpFirst();
+            SimpleList<OurCPU> cpuList = OperatingSystem.getInstance().getCpuList();
+            SimpleNode<OurCPU> auxNode = cpuList.getpFirst();
 
-        while (auxNode != null) {
-            OurCPU cpu = auxNode.getData();
-            // Si el proceso interrumpido es el que se está ejecutando en este CPU
-            if (cpu.getCurrentProcess() != null && cpu.getCurrentProcess().equals(process)) {
-
-                cpu.pauseCPU(); // Pausar la ejecución del CPU
-                QueueManager.getInstance().addToBlockedQueue(process.getPcb());
-                cpu.setCurrentProcess(null); // Limpiar el proceso actual
-                cpu.setIsBusy(false);
-                cpu.resumeCPU(); // Reanudar el CPU para que ejecute otros procesos
-
-                System.out.println("[EH] Proceso " + process.getPcb().getName() + " interrumpido y movido a bloqueados");
-
-                // Agregar listener al Clock para resolver la espera de I/O ????
-                break;
+            while (auxNode != null) {
+                OurCPU cpu = auxNode.getData();
+                // Si el proceso interrumpido es el que se está ejecutando en este CPU
+                if (cpu.getCurrentProcess() != null && cpu.getCurrentProcess().equals(process)) {
+                    System.out.println("[EH] Proceso " + process.getPcb().getName() + " interrumpido");
+                    cpu.signalInterrupt();
+                    break;
+                    
+                }
+                auxNode = auxNode.getpNext();
             }
-            auxNode = auxNode.getpNext();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
+        } finally {
+            this.mutex.release(); // Liberar el semáforo después de acceder a la sección crítica
         }
     }
 
     //Excepcion 
     public void interruptCPU(OurCPU cpu) {
+        
+        try {
+            this.mutex.acquire();
+            
+            OurProcess process = cpu.getCurrentProcess();
+            QueueManager.getInstance().addToBlockedQueue(process.getPcb());
+            cpu.setCurrentProcess(null); // Limpiar el proceso actual
+            cpu.setIsBusy(false);
+            cpu.clearInterrupt();
+            
+            
+            System.out.println("[EH] Proceso " + process.getPcb().getName() + " interrumpido y movido a bloqueados");
+            
+            
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ExceptionHandler.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            this.mutex.release();
+        }
+    }
 
-        OurProcess process = cpu.getCurrentProcess();
-//        cpu.pauseCPU(); // Pausar la ejecución del CPU
-        QueueManager.getInstance().addToBlockedQueue(process.getPcb());
-        cpu.setCurrentProcess(null); // Limpiar el proceso actual
-        cpu.setIsBusy(false);
-//        cpu.resumeCPU(); // Reanudar el CPU para que ejecute otros procesos
-
-        System.out.println("[EH] Proceso " + process.getPcb().getName() + " interrumpido y movido a bloqueados");
-
-        // Agregar listener al Clock para resolver la espera de I/O ????
+    public Semaphore getMutex() {
+        return mutex;
     }
 
 }

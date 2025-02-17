@@ -6,24 +6,18 @@ package Classes.Scheduler;
 
 import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.OurProcess;
-import EDD.OurQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  *
  * @author Windows 11 ###### Re-estructurar
  */
 public class FirstComeFirstServed implements Scheduler {
 
-    private QueueManager queueManager = QueueManager.getInstance();
-
     public FirstComeFirstServed() {
     }
 
     @Override
     public OurProcess getNextProcess() {
-        PCB nextProcessPCB = queueManager.getNextReadyProcess();
+        PCB nextProcessPCB = QueueManager.getInstance().getNextReadyProcess();
 
         if (nextProcessPCB == null) {
             System.out.println("[FCFS]\nNo hay procesos en la cola de listos");
@@ -31,7 +25,7 @@ public class FirstComeFirstServed implements Scheduler {
         }
 
         try {
-            OurProcess process = queueManager.getProcessByPCB(nextProcessPCB);
+            OurProcess process = QueueManager.getInstance().getProcessByPCB(nextProcessPCB);
             return process;
         } catch (InterruptedException ex) {
             System.out.println("Error al obtener el proceso desde la PCB.");

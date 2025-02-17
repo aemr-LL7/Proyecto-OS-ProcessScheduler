@@ -6,7 +6,6 @@ package OperativeSystem;
 
 import Classes.ProcessFactory.DefaultProcessFactory;
 import Classes.ProcessFactory.OurProcess;
-import Classes.ProcessFactory.ProcessState;
 import Classes.Scheduler.FirstComeFirstServed;
 import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
@@ -19,7 +18,7 @@ import java.util.concurrent.Semaphore;
  *
  * @author Windows 11
  */
-public final class OperatingSystem extends Thread {
+public final class OperatingSystem {
 
     private static OperatingSystem instance;
     private final DefaultProcessFactory processFactory;
@@ -38,7 +37,7 @@ public final class OperatingSystem extends Thread {
     private OperatingSystem() {
         this.scheduler = new FirstComeFirstServed(); // Inicializamos con esta porque podemos y ya
         this.processFactory = new DefaultProcessFactory();
-        this.setName("SSOO Thread");
+//        this.setName("SSOO Thread");
         //this.startSystem();
     }
 
@@ -50,30 +49,13 @@ public final class OperatingSystem extends Thread {
         return instance;
     }
 
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                // Espera al siguiente ciclo
-                tickSemaphore.acquire();
-
-                // Asignar procesos desde las colas de listos o bloqueados
-                this.scheduleProcesses();
-
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public void startSystem() {
         // Empezamos la simulación con 2 procesadores
         this.initializeProcessors(1);
         this.initializeProcesses(1);
 
         systemClock.start();
-        new Thread(this).start();  // Iniciar el sistema operativo en su propio hilo
+//        new Thread(this).start();  // Iniciar el sistema operativo en su propio hilo
         this.startAllCPUs();
         System.out.println(" ====> Sistema Operativo iniciado");
 
@@ -129,7 +111,7 @@ public final class OperatingSystem extends Thread {
 
         // yallready know it - thats curious brav
         this.getCpuList().addAtTheEnd(newCpu);
-        System.out.println("[OS] Nuevo CPU añadido: " + newCpu.getCpuId() + "\nList size: " + this.getCpuList().getSize()+"\n");
+        System.out.println("[OS] Nuevo CPU añadido: " + newCpu.getCpuId() + "\nList size: " + this.getCpuList().getSize() + "\n");
         this.getCpuList().printList();
     }
 
@@ -225,4 +207,9 @@ public final class OperatingSystem extends Thread {
     public ExceptionHandler getExceptionHandler() {
         return exceptionHandler;
     }
+
+    public Scheduler getScheduler() {
+        return scheduler;
+    }
+
 }

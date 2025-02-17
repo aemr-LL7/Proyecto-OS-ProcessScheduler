@@ -7,6 +7,8 @@ package Classes.ProcessFactory;
 import Classes.Scheduler.QueueManager;
 import OperativeSystem.Clock;
 import OperativeSystem.ClockListener;
+import OperativeSystem.ExceptionHandler;
+import OperativeSystem.OperatingSystem;
 
 
 /**
@@ -23,7 +25,7 @@ public class OurProcess {
         this.executedInstructions = 0;
     }
 
-    public void executeInstruction() {
+    public void executeInstruction() throws InterruptedException {
         if (pcb.getState() == ProcessState.FINISHED) {
             System.out.println("Proceso " + pcb.getName() + "Ha terminado su ejecucion");
             return;
@@ -51,7 +53,7 @@ public class OurProcess {
         if (pcb.isIsIOBound() && executedInstructions % pcb.getExceptionCycleThreshold() == 0) {
             // Llamar al manejador de excepciones para mover el proceso a bloqueados
             handleIOInterruption();
-           
+            ExceptionHandler.getInstance().interruptCPU(this);
         }
 
     }
