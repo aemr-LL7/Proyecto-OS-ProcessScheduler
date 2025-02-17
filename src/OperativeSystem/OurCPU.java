@@ -62,7 +62,6 @@ public class OurCPU extends Thread {
                     } // Verificar si el proceso está bloqueado (I/O-bound)
                     else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
                         System.out.println("\nCPU detectó que el proceso " + currentProcess.getPcb().getName() + " esta bloqueado");
-//                        OperatingSystem.getInstance().getExceptionHandler().interruptCPU(this); //CODIGO VIEJO
 
                     }
 
