@@ -158,11 +158,13 @@ public class QueueManager {
 
             PCB process = readyQueue.pop();
             process.setState(ProcessState.RUNNING); // CAMBIAR ESTADO A RUNNING
-            readyQueueSemaphore.release();
+            
             return process;
         } catch (InterruptedException e) {
             e.printStackTrace();
             return null;
+        } finally {
+            readyQueueSemaphore.release();
         }
     }
 

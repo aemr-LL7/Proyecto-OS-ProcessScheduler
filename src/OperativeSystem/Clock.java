@@ -32,7 +32,7 @@ public class Clock extends Thread {
         //La cantidad de permisos que tenga el semaforo va a depender de cuantos CPUs haya en el sistema. 
         //Si hay 1 CPU, necesitamos iniciar en 1(1 para el CPU y 1 Para el SSOO), si hay 2 CPUs necesitamos 2 y si Hay 3, necesitamos 3 Permisos
         this.tickSemaphore = new Semaphore(0);//Inicializacion para 1 solo CPU
-        this.permissionsRequired = 0;
+        this.permissionsRequired = 2;
     }
 
     public static synchronized Clock getInstance() {
@@ -59,7 +59,7 @@ public class Clock extends Thread {
                 System.out.println("Clock tick: ciclo " + currentCycle +" -----------------------------------------------------------\n");
                 currentCycle++;
 
-                this.tickSemaphore.release();
+                this.tickSemaphore.release(this.permissionsRequired);
 
                 //Listeners
                 SimpleNode<ClockListener> current = listeners.getpFirst();

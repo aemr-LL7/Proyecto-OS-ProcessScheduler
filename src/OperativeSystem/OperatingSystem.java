@@ -51,8 +51,8 @@ public final class OperatingSystem {
 
     public void startSystem() {
         // Empezamos la simulación con 2 procesadores
-        this.initializeProcessors(1);
-        this.initializeProcesses(1);
+        this.initializeProcessors(2);
+        this.initializeProcesses(5);
 
         systemClock.start();
 //        new Thread(this).start();  // Iniciar el sistema operativo en su propio hilo
@@ -79,10 +79,10 @@ public final class OperatingSystem {
         for (int i = 1; i <= numProcesses; i++) {
             int instructions = random.nextInt(10) + 15; // Entre 15 y 25 instrucciones
             boolean isIOBound = random.nextBoolean(); // Proceso con I/O aleatorio
-            int exceptionThreshold = isIOBound ? (random.nextInt(4) + 2) : 0; // Cada cuántas instrucciones lanza una interrupción
-            int resolutionCycles = isIOBound ? (random.nextInt(3) + 1) : 0; // Ciclos para resolver I/O
+            int exceptionThreshold = isIOBound ? (random.nextInt(4) + 4) : 0; // Cada cuántas instrucciones lanza una interrupción
+            int resolutionCycles = isIOBound ? (random.nextInt(3) + 7) : 0; // Ciclos para resolver I/O
 
-            OurProcess newProcess = processFactory.createProcess("P" + i, instructions, true, 8, 6);
+            OurProcess newProcess = processFactory.createProcess("P" + i, instructions, isIOBound, exceptionThreshold, resolutionCycles);
 
             if (newProcess != null) {
                 System.out.println("[OS] Proceso creado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones.");

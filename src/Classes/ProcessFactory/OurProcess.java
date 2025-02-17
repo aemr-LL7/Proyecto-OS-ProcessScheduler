@@ -71,7 +71,7 @@ public class OurProcess {
 
                     if (!hasFinished()) {
                         pcb.setState(ProcessState.READY); // Cambiar el estado a READY
-//                        QueueManager.getInstance().addToReadyQueue(getPcb()); //HAY DEADLOCK ACA PAPU JijijiJA
+                        QueueManager.getInstance().addToReadyQueue(getPcb()); //HAY DEADLOCK ACA PAPU JijijiJA
                         System.out.println("Proceso " + pcb.getName() + " ha sido desbloqueado y agregado a LISTOS.");
                     }
                     
