@@ -67,17 +67,16 @@ public class OurProcess {
 
             @Override
             public void onTick(int newCycle) {
-                pcb.setMAR(pcb.getMAR()+1);
-                System.out.println("Proceso " + pcb.getName() + " ha aumentado en 1 su MAR.");
                 if (newCycle >= startCycle + pcb.getExceptionSolveNumber()) {
 
                     if (!hasFinished()) {
                         pcb.setState(ProcessState.READY); // Cambiar el estado a READY
-                        QueueManager.getInstance().addToReadyQueue(getPcb());
+//                        QueueManager.getInstance().addToReadyQueue(getPcb()); //HAY DEADLOCK ACA PAPU JijijiJA
                         System.out.println("Proceso " + pcb.getName() + " ha sido desbloqueado y agregado a LISTOS.");
                     }
-                    pcb.setMAR(0);
+                    
                     Clock.getInstance().removeListener(this);
+                    pcb.setMAR(0);
                 }
             }
         };

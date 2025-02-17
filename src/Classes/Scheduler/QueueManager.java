@@ -63,6 +63,11 @@ public class QueueManager {
         try {
             readyQueueSemaphore.acquire();
 
+            if (process.getState() == ProcessState.BLOCKED) {
+                System.out.println("ERROR: Intentando agregar un proceso bloqueado a la cola de listos: " + process.getName());
+                return;
+            }
+
             process.setState(ProcessState.READY);
             readyQueue.insert(process);
 

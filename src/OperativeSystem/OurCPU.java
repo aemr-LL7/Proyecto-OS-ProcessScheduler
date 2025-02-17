@@ -51,6 +51,7 @@ public class OurCPU extends Thread {
 
                 if (currentProcess != null) {
 
+                    System.out.println("Estoy Procesando: " + this.getName());
                     currentProcess.executeInstruction();
 
                     // Verificar si el proceso ha terminado
