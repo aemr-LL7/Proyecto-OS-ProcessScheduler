@@ -6,7 +6,6 @@ package OperativeSystem;
 
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.ProcessState;
-import Classes.Scheduler.QueueManager;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -21,7 +20,8 @@ public class OurCPU extends Thread {
     private boolean running;
     private boolean isBusy;
     private boolean interruptionDetected = false;
-    private int quantum = 0;
+    private boolean markedForDeath = false;
+    private int quantum = 0; //For RoundRobin 
 
     public OurCPU(int id) {
         this.cpuId = id;
@@ -66,6 +66,8 @@ public class OurCPU extends Thread {
 
                     }
 
+                    OperatingSystem.getInstance().getScheduler().checkFlags(this);//Codigo para cosas como RR
+
                 } else if (currentProcess == null) {
 
                     OurProcess nextProcess = OperatingSystem.getInstance().getScheduler().getNextProcess();
@@ -76,19 +78,28 @@ public class OurCPU extends Thread {
                     }
                 }
 
-                if (this.checkInterrupt()) {
+                this.handleInterruptions();
 
-                    ExceptionHandler.getInstance().interruptCPU(this);
-                }
-
-                OperatingSystem.getInstance().getScheduler().checkFlags(this);
-                
             } catch (InterruptedException e) {
                 System.err.println("ERROR CRÍTICO en CPU: " + e.getMessage());
                 Thread.currentThread().interrupt();
                 break;
             }
         }
+    }
+
+    public void handleInterruptions() {
+
+        if (this.checkInterrupt()) {
+
+            ExceptionHandler.getInstance().interruptCPU(this);
+            if (this.willDie()) {
+
+                OperatingSystem.getInstance().removeCPU(this);
+                this.setRunning(false);
+            }
+        }
+
     }
 
     public void clearCurrentProcess() {
@@ -150,5 +161,27 @@ public class OurCPU extends Thread {
     public void clearInterrupt() {
         this.interruptionDetected = false;
     }
+
+    public boolean isWillDie() {
+        return markedForDeath;
+    }
+
+    public void setWillDie(boolean willDie) {
+        this.markedForDeath = willDie;
+    }
+
+    public int getQuantum() {
+        return quantum;
+    }
+
+    public void setQuantum(int quantum) {
+        this.quantum = quantum;
+    }
+
+    private boolean willDie() {
+        return this.markedForDeath;
+    }
+
+    
 
 }

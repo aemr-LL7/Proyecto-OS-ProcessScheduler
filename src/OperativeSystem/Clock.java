@@ -22,6 +22,7 @@ public class Clock extends Thread {
     private Semaphore tickSemaphore; //Siempre tiene que tener n-1 cantidad de permisos para la cantidad de CPUs activos
     private final SimpleList<ClockListener> listeners;
     private int permissionsRequired = 1;//Permisos requeridos: 1 para 1 procesador, 2 para 2 y 3 para 3
+    private final Semaphore mutexSemaphore = new Semaphore(1);
 
     private Clock() {
         this.currentCycle = 0;
@@ -123,6 +124,7 @@ public class Clock extends Thread {
         this.permissionsRequired = permissionsRequired;
     }
 
-    
-    
+    public Semaphore getMutexSemaphore() {
+        return mutexSemaphore;
+    }
 }

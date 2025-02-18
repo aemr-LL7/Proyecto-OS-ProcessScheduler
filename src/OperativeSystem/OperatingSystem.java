@@ -23,9 +23,9 @@ public final class OperatingSystem {
     private static OperatingSystem instance;
     private final DefaultProcessFactory processFactory;
     private SimpleList<OurCPU> cpuList;
+    private final Semaphore cpuMutex = new Semaphore(1);
     private Scheduler scheduler;
 
-    private final Semaphore tickSemaphore = Clock.getInstance().getTickSemaphore(); // Sincronización con Clock
     private final Clock systemClock = Clock.getInstance();
     private final ExceptionHandler exceptionHandler = ExceptionHandler.getInstance();
     private final QueueManager queueManager = QueueManager.getInstance();
@@ -210,6 +210,32 @@ public final class OperatingSystem {
 
     public Scheduler getScheduler() {
         return scheduler;
+    }
+
+    void removeCPU(OurCPU cpu) {
+        try {
+            this.cpuMutex.acquire();
+            this.systemClock.getMutexSemaphore().acquire();
+
+            if (this.cpuList.getSize() > 1) {
+                this.cpuList.delete(cpu);
+                this.systemClock.setPermissionsRequired(this.cpuList.getSize());
+
+            } else {
+
+                System.out.println("No puedo matar mas CPUs");
+
+            }
+
+        } catch (InterruptedException e) {
+            System.out.println("Oh no");
+        } finally {
+
+            this.systemClock.getMutexSemaphore().release();
+            this.cpuMutex.release();
+
+        }
+
     }
 
 }
