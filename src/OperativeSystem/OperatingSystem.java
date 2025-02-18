@@ -54,8 +54,8 @@ public final class OperatingSystem {
         this.initializeProcessors(2);
         this.initializeProcesses(5);
 
+        systemClock.setPermissionsRequired(this.getCpuList().getSize()); //setear la cantidad de permisos a la misma de activos CPUs
         systemClock.start();
-//        new Thread(this).start();  // Iniciar el sistema operativo en su propio hilo
         this.startAllCPUs();
         System.out.println(" ====> Sistema Operativo iniciado");
 
