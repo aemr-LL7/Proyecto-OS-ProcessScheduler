@@ -6,7 +6,7 @@ package OperativeSystem;
 
 import Classes.ProcessFactory.DefaultProcessFactory;
 import Classes.ProcessFactory.OurProcess;
-import Classes.Scheduler.FirstComeFirstServed;
+import Classes.Scheduler.pFirstComeFirstServed;
 import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
 import EDD.SimpleList;
@@ -35,7 +35,7 @@ public final class OperatingSystem {
 
     // Constructor privado para evitar instanciación externa
     private OperatingSystem() {
-        this.scheduler = new FirstComeFirstServed(); // Inicializamos con esta porque podemos y ya
+        this.scheduler = new pFirstComeFirstServed(); // Inicializamos con esta porque podemos y ya
         this.processFactory = new DefaultProcessFactory();
 //        this.setName("SSOO Thread");
         //this.startSystem();
@@ -134,38 +134,6 @@ public final class OperatingSystem {
         OurProcess newProcess = processFactory.createProcess("P" + Clock.getInstance().getCurrentCycle(), instructions, isIOBound, exceptionThreshold, resolutionCycles);
 
         System.out.println("\n[OS] Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
-    }
-
-    private void scheduleProcesses() {
-        // Si no hay procesos en la cola de listos se genera uno nuevo
-        if (queueManager.getReadyQueueSize() == 0) {
-            System.out.println("\n[OS] La cola de listos esta vacia!!");
-            return;
-        }
-
-        // Asignar procesos al CPU si hay alguno en la cola de listos
-        for (int i = 0; i < cpuList.getSize(); i++) {
-            OurCPU cpu = cpuList.getValueByIndex(i);
-
-            if (!cpu.isIsBusy()) { // Solo asignar si el CPU está libre
-                OurProcess nextProcess = scheduler.getNextProcess();
-                if (nextProcess != null) {
-                    cpu.executeProcess(nextProcess);  // Asignar el proceso al CPU
-                    System.out.println("\n[OS] ==> Asignando proceso " + nextProcess.getPcb().getName() + " al CPU " + i);
-                } else {
-                    System.out.println("\n[OS] No hay procesos disponibles para el CPU " + i);
-                }
-            }
-        }
-    }
-
-    private boolean allCPUsAreIdle() {
-        for (int i = 0; i < cpuList.getSize(); i++) {
-            if (cpuList.getValueByIndex(i).isIsBusy()) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public void setScheduler(Scheduler scheduler) {

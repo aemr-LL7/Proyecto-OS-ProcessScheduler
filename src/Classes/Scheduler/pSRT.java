@@ -5,30 +5,22 @@
 package Classes.Scheduler;
 
 import Classes.ProcessFactory.OurProcess;
-import Classes.ProcessFactory.ProcessState;
-import EDD.OurQueue;
 import OperativeSystem.OurCPU;
 
 /**
  *
- * @author Windows 11
+ * @author B-St
  */
-public class RoundRobin implements Scheduler {
-
-    private final int quantum; // Número de instrucciones (o ciclos) que se asignan a cada proceso
-    private QueueManager queueManager = QueueManager.getInstance();
-
-    public RoundRobin(int quantum) {
-        this.quantum = quantum;
-    }
+public class pSRT implements Scheduler {
 
     @Override
     public OurProcess getNextProcess() {
-        return null;
+             return null;
     }
 
     @Override
     public void checkFlags(OurCPU cpu) {
 
     }
+
 }

@@ -11,9 +11,9 @@ import OperativeSystem.OurCPU;
  *
  * @author Windows 11 ###### Re-estructurar
  */
-public class FirstComeFirstServed implements Scheduler {
+public class pFirstComeFirstServed implements Scheduler {
 
-    public FirstComeFirstServed() {
+    public pFirstComeFirstServed() {
     }
 
     @Override
