@@ -6,6 +6,7 @@ package OperativeSystem;
 
 import EDD.SimpleList;
 import EDD.SimpleNode;
+import Main.GUI.SimulationUI;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,8 +57,11 @@ public class Clock extends Thread {
             try {
 
                 // Notifica a cada listener
-                System.out.println("Clock tick: ciclo " + currentCycle +" -----------------------------------------------------------\n");
+                System.out.println("Clock tick: ciclo " + currentCycle + " -----------------------------------------------------------\n");
                 currentCycle++;
+
+                // Llamar a GUI y actualizar el ciclo actual
+                SimulationUI.getSimulationUIInstance().getClockTickCycleLabel().setText("Ciclo Global de Reloj: " + String.valueOf(this.currentCycle));
 
                 this.tickSemaphore.release(this.permissionsRequired);
 
@@ -67,10 +71,9 @@ public class Clock extends Thread {
                     current.getData().onTick(currentCycle);
                     current = current.getpNext();
                 }
-                
-                
+
                 Thread.sleep(cycleDuration);
-                
+
             } catch (InterruptedException ex) {
                 Logger.getLogger(Clock.class.getName()).log(Level.SEVERE, null, ex);
             }

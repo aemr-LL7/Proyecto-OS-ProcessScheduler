@@ -6,6 +6,7 @@ package OperativeSystem;
 
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.ProcessState;
+import Main.GUI.SimulationUI;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -59,11 +60,14 @@ public class OurCPU extends Thread {
                     if (currentProcess.hasFinished()) {
                         System.out.println("\n(CPU_" + this.getCpuId() + ") ha terminado el proceso: " + currentProcess.getPcb().getName());
                         this.clearCurrentProcess();
+                        // Llamar a GUI y actualizar las colas
+                        SimulationUI.getSimulationUIInstance().updateQueueDisplays();
 
                     } // Verificar si el proceso está bloqueado (I/O-bound)
                     else if (currentProcess.getPcb().getState() == ProcessState.BLOCKED) {
                         System.out.println("\nCPU detectó que el proceso " + currentProcess.getPcb().getName() + " esta bloqueado");
-
+                        // Llamar a GUI y actualizar las colas
+                        SimulationUI.getSimulationUIInstance().updateQueueDisplays();
                     }
 
                     OperatingSystem.getInstance().getScheduler().checkFlags(this);//Codigo para cosas como RR
@@ -75,6 +79,8 @@ public class OurCPU extends Thread {
                         System.out.println("(CPU_" + this.getCpuId() + ") -> Estoy sin procesos brav -> Estado ocupado: " + this.isBusy);
                     } else {
                         this.currentProcess = nextProcess;
+                        // Llamar a GUI y actualizar las colas
+                        SimulationUI.getSimulationUIInstance().updateQueueDisplays();
                     }
                 }
 
@@ -97,6 +103,8 @@ public class OurCPU extends Thread {
 
                 OperatingSystem.getInstance().removeCPU(this);
                 this.setRunning(false);
+                // Llamar a GUI y actualizar las colas
+                SimulationUI.getSimulationUIInstance().updateQueueDisplays();
             }
         }
 
@@ -181,7 +189,5 @@ public class OurCPU extends Thread {
     private boolean willDie() {
         return this.markedForDeath;
     }
-
-    
 
 }

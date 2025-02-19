@@ -5,6 +5,7 @@
 
 package Main;
 
+import Main.GUI.SimulationUI;
 import OperativeSystem.OperatingSystem;
 
 /**
@@ -18,8 +19,11 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        OperatingSystem ourOS = OperatingSystem.getInstance();
-        ourOS.startSystem();
+        // PROBANDO GUI
+        SimulationUI myWindow = SimulationUI.getSimulationUIInstance();
+        myWindow.setVisible(true);
+//        OperatingSystem ourOS = OperatingSystem.getInstance();
+//        ourOS.startSystem();
         // Probando probando probando ah
         //ourOS.scheduleProcesses();
         //ourOS.addProcessor();

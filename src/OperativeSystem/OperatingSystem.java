@@ -11,6 +11,7 @@ import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
 import EDD.SimpleList;
 import EDD.SimpleNode;
+import Main.GUI.SimulationUI;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
@@ -50,15 +51,17 @@ public final class OperatingSystem {
     }
 
     public void startSystem() {
-        // Empezamos la simulación con 2 procesadores
-        this.initializeProcessors(2);
-        this.initializeProcesses(5);
 
-        systemClock.setPermissionsRequired(this.getCpuList().getSize()); //setear la cantidad de permisos a la misma de activos CPUs
-        systemClock.start();
+        getSystemClock().setPermissionsRequired(this.getCpuList().getSize()); //setear la cantidad de permisos a la misma de activos CPUs
+        getSystemClock().start();
         this.startAllCPUs();
         System.out.println(" ====> Sistema Operativo iniciado");
+    }
 
+    public void initUISystemValues(int numCpus, int numProcesses) {
+        // Empezamos la simulación con 2 procesadores
+        this.initializeProcessors(SimulationUI.getSimulationUIInstance().getNumCPUs());
+        this.initializeProcesses(SimulationUI.getSimulationUIInstance().getNumProcesses());
     }
 
     private void initializeProcessors(int numOfCPUs) {
@@ -68,7 +71,11 @@ public final class OperatingSystem {
             OurCPU cpu = new OurCPU(i);
             cpu.setName("CPU" + (i + 1));
             auxCpuList.addAtTheEnd(cpu);
+            // init UI
+            SimulationUI.getSimulationUIInstance().getCpuListModel().addElement("CPU-" + i + " - Inactivo");
         }
+        // init UI
+        SimulationUI.getSimulationUIInstance().getCpusJList().setModel(SimulationUI.getSimulationUIInstance().getCpuListModel());
 
         this.setCpuList(auxCpuList);
     }
@@ -117,6 +124,32 @@ public final class OperatingSystem {
 
     private void removeProcessor() {
         // CÓMO MONDA VAMOS A QUITAR UN PROCESADOR
+    }
+
+    public void removeCPU(OurCPU cpu) {
+        try {
+            this.cpuMutex.acquire();
+            this.getSystemClock().getMutexSemaphore().acquire();
+
+            if (this.cpuList.getSize() > 1) {
+                this.cpuList.delete(cpu);
+                this.getSystemClock().setPermissionsRequired(this.cpuList.getSize());
+
+            } else {
+
+                System.out.println("No puedo matar mas CPUs");
+
+            }
+
+        } catch (InterruptedException e) {
+            System.out.println("Oh no");
+        } finally {
+
+            this.getSystemClock().getMutexSemaphore().release();
+            this.cpuMutex.release();
+
+        }
+
     }
 
     private void generateNewProcess() {
@@ -180,30 +213,11 @@ public final class OperatingSystem {
         return scheduler;
     }
 
-    void removeCPU(OurCPU cpu) {
-        try {
-            this.cpuMutex.acquire();
-            this.systemClock.getMutexSemaphore().acquire();
-
-            if (this.cpuList.getSize() > 1) {
-                this.cpuList.delete(cpu);
-                this.systemClock.setPermissionsRequired(this.cpuList.getSize());
-
-            } else {
-
-                System.out.println("No puedo matar mas CPUs");
-
-            }
-
-        } catch (InterruptedException e) {
-            System.out.println("Oh no");
-        } finally {
-
-            this.systemClock.getMutexSemaphore().release();
-            this.cpuMutex.release();
-
-        }
-
+    /**
+     * @return the systemClock
+     */
+    public Clock getSystemClock() {
+        return systemClock;
     }
 
 }
