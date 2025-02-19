@@ -26,9 +26,9 @@ public class pShortestJobFirst implements Scheduler {
 
     public OurProcess searchShortestJob() throws InterruptedException {
 
-        QueueManager queueManager = QueueManager.getInstance();
+        OurProcess returning = null;
         try {
-
+            QueueManager queueManager = QueueManager.getInstance();
             queueManager.getProcessTableSemaphore().acquire();
             queueManager.getReadyQueueSemaphore().acquire();
             queueManager.getNewProcessesQueueSemaphore().acquire();
@@ -36,35 +36,31 @@ public class pShortestJobFirst implements Scheduler {
             SimpleNode<OurProcess> auxNode = queueManager.getProcessTable().getEntriesList().getpFirst();
             if (auxNode != null) {
 
-                OurProcess returning = auxNode.getData();
+                returning = auxNode.getData();
                 while (auxNode != null) {
-                    if (auxNode.getData().getPcb().getTotalInstructions() > returning.getPcb().getTotalInstructions() && auxNode.getData().getPcb().getState() == ProcessState.READY || auxNode.getData().getPcb().getState() == ProcessState.NEW) {
+                    if (auxNode.getData().getPcb().getTotalInstructions() < returning.getPcb().getTotalInstructions() && (auxNode.getData().getPcb().getState() == ProcessState.READY || auxNode.getData().getPcb().getState() == ProcessState.NEW)) {
                         returning = auxNode.getData();
 
-                        queueManager.getReadyQueue();
                         queueManager.getReadyQueue().remove(returning.getPcb());
                         queueManager.getNewProcessesQueue().remove(returning.getPcb());
 
-                        queueManager.getProcessTableSemaphore().release();
-                        queueManager.getReadyQueueSemaphore().release();
-                        queueManager.getNewProcessesQueueSemaphore().release();
-                        return returning;
                     }
 
                     auxNode = auxNode.getpNext();
                 }
+
             }
 
         } catch (InterruptedException e) {
             return null;
         } finally {
 
-            queueManager.getProcessTableSemaphore().release();
-            queueManager.getReadyQueueSemaphore().release();
-            queueManager.getNewProcessesQueueSemaphore().release();
-        }
-        return null;
+            QueueManager.getInstance().getProcessTableSemaphore().release();
+            QueueManager.getInstance().getReadyQueueSemaphore().release();
+            QueueManager.getInstance().getNewProcessesQueueSemaphore().release();
 
+        }
+        return returning;
     }
 
     @Override
