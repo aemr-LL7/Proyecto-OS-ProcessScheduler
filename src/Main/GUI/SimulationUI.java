@@ -469,6 +469,11 @@ public class SimulationUI extends javax.swing.JFrame {
         processTablePanel = new javax.swing.JPanel();
         processTable = new javax.swing.JScrollPane();
         processJTable = new javax.swing.JTable();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        simulationOptions = new javax.swing.JMenu();
+        jMenu3 = new javax.swing.JMenu();
+        fcfsMenuItem = new javax.swing.JMenuItem();
 
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -803,6 +808,22 @@ public class SimulationUI extends javax.swing.JFrame {
 
         getContentPane().add(mainSimulationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 1300, 760));
 
+        fileMenu.setText("Archivo");
+        jMenuBar1.add(fileMenu);
+
+        simulationOptions.setText("Simulación");
+
+        jMenu3.setText("PLANIFICACIÓN");
+
+        fcfsMenuItem.setText("FCFS");
+        jMenu3.add(fcfsMenuItem);
+
+        simulationOptions.add(jMenu3);
+
+        jMenuBar1.add(simulationOptions);
+
+        setJMenuBar(jMenuBar1);
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -991,6 +1012,8 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JSlider cycleDurationSlider;
     private javax.swing.JButton deleteCpusButton;
     private javax.swing.JButton fcfsButton;
+    private javax.swing.JMenuItem fcfsMenuItem;
+    private javax.swing.JMenu fileMenu;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
@@ -1000,6 +1023,8 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JMenu jMenu3;
+    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -1018,6 +1043,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JPanel queueBlockedPanel;
     private javax.swing.JPanel queueReadyPanel;
     private javax.swing.JScrollPane scrollCpusPane;
+    private javax.swing.JMenu simulationOptions;
     private javax.swing.JPanel simulationPanel;
     private javax.swing.JButton startButton;
     private javax.swing.JDialog startSimulationDialog;
