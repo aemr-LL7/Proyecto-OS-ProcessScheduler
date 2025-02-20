@@ -21,6 +21,12 @@ public class OurQueue<T> {
         return this.pFirst == null;
     }
 
+    public void clearQueue() {
+        this.pFirst = null;
+        this.pLast = null;
+        this.size = 0;
+    }
+
     public void insert(T data) {
 
         SimpleNode<T> newNode = new SimpleNode(data);
@@ -74,9 +80,8 @@ public class OurQueue<T> {
         }
         return false; // No se encontró el elemento
     }
-    
-    // STILL A WIP
 
+    // STILL A WIP
     public SimpleList<T> getListSortedFromQueue(OurQueue<T> queue) {
         SimpleList<T> dataList = new SimpleList<>();
 

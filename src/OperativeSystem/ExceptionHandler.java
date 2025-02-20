@@ -7,7 +7,6 @@ package OperativeSystem;
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.ProcessState;
-import Classes.Scheduler.QueueManager;
 import EDD.SimpleList;
 import EDD.SimpleNode;
 import java.util.concurrent.Semaphore;

@@ -4,6 +4,7 @@
  */
 package Classes.Scheduler;
 
+import OperativeSystem.QueueManager;
 import Classes.ProcessFactory.OurProcess;
 import EDD.SimpleNode;
 import OperativeSystem.OurCPU;
@@ -27,7 +28,7 @@ public class pSRT implements Scheduler {
 
             // Obtener el primer nodo de la lista de procesos
             SimpleNode<OurProcess> auxNode = queueManager.getProcessTable().getEntriesList().getpFirst();
-            int minRemainingTime = auxNode.getData().getPcb().getPC() - auxNode.getData().getPcb().getTotalInstructions();//Tiempo mas corto inicial
+            int minRemainingTime = auxNode.getData().getPcb().getTotalInstructions() - auxNode.getData().getPcb().getPC();//Tiempo mas corto inicial
 
             // Recorrer la lista de procesos
             while (auxNode != null) {

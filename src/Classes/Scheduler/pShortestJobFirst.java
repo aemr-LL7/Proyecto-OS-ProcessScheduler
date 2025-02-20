@@ -4,6 +4,7 @@
  */
 package Classes.Scheduler;
 
+import OperativeSystem.QueueManager;
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.ProcessState;
 import EDD.SimpleNode;
@@ -40,13 +41,15 @@ public class pShortestJobFirst implements Scheduler {
                 while (auxNode != null) {
                     if (auxNode.getData().getPcb().getTotalInstructions() < returning.getPcb().getTotalInstructions() && (auxNode.getData().getPcb().getState() == ProcessState.READY || auxNode.getData().getPcb().getState() == ProcessState.NEW)) {
                         returning = auxNode.getData();
-
-                        queueManager.getReadyQueue().remove(returning.getPcb());
-                        queueManager.getNewProcessesQueue().remove(returning.getPcb());
-
                     }
 
                     auxNode = auxNode.getpNext();
+                }
+
+                if (returning.getPcb().getState() == ProcessState.READY) {
+                    queueManager.getReadyQueue().remove(returning.getPcb());
+                } else if (returning.getPcb().getState() == ProcessState.NEW) {
+                    queueManager.getNewProcessesQueue().remove(returning.getPcb());
                 }
 
             }

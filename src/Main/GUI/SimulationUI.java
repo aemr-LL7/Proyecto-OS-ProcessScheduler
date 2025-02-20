@@ -7,11 +7,16 @@ package Main.GUI;
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.PCB;
 import Classes.ProcessFactory.ProcessState;
-import Classes.Scheduler.QueueManager;
+import OperativeSystem.QueueManager;
 import Classes.Scheduler.pFirstComeFirstServed;
+import Classes.Scheduler.pHRRN;
+import Classes.Scheduler.pRoundRobin;
+import Classes.Scheduler.pSRT;
+import Classes.Scheduler.pShortestJobFirst;
 import EDD.OurQueue;
 import EDD.SimpleList;
 import EDD.SimpleNode;
+import FileManager.FileManager;
 import OperativeSystem.OperatingSystem;
 import OperativeSystem.OurCPU;
 import java.awt.BorderLayout;
@@ -24,6 +29,7 @@ import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -54,6 +60,9 @@ public class SimulationUI extends javax.swing.JFrame {
     private int numProcesses = 0;
     private boolean confirmed = false;
     private boolean startSimulation = false;
+
+    // Archivos params
+    private static FileManager fileManager = new FileManager();
 
     /**
      * Creates new form Simulation
@@ -90,6 +99,67 @@ public class SimulationUI extends javax.swing.JFrame {
         return getSimulationUiInstance();
     }
 
+    public void clearAllFields() {
+        // parametros de config
+        this.cycleDuration = 0;
+        this.numCPUs = 0;
+        this.numProcesses = 0;
+
+        // elementos de simulacion:
+        // cpus y colas
+        if (!operatingSystem.getCpuList().isEmpty()) {
+            operatingSystem.getCpuList().wipeList();
+        }
+        
+        if (!queueManager.isEmpty()) {
+            queueManager.getReadyQueue().clearQueue();
+        }
+        
+        
+    }
+
+    private void gottaStartSimulation(int typeScheduler) {
+        // Seleccionar el scheduler basado en el tipo
+        this.selectScheduler(typeScheduler);
+
+        // Deshabilitar botones iniciales
+        this.createButton.setEnabled(false);
+        this.startButton.setEnabled(false);
+
+        // Cerrar diálogo de inicio de simulación
+        this.startSimulationDialog.dispose();
+
+        // Configurar otros elementos de la interfaz
+        this.createCpusButton.setEnabled(false);
+        this.deleteCpusButton.setEnabled(false);
+        this.saveDataMenuItem.setEnabled(false);
+        this.writeDataMenuItem.setEnabled(false);
+        this.simulationOptions.setEnabled(true);
+
+        // INICIAR SIMULACION
+        this.startSimulation = true;
+        this.operatingSystem.startSystem();
+    }
+
+    private void selectScheduler(int typeScheduler) {
+        switch (typeScheduler) {
+            case 1:
+                this.operatingSystem.setScheduler(new pFirstComeFirstServed());
+                break;
+            case 3:
+                this.operatingSystem.setScheduler(new pShortestJobFirst());
+                break;
+            case 4:
+                this.operatingSystem.setScheduler(new pSRT());
+                break;
+            case 5:
+                this.operatingSystem.setScheduler(new pHRRN());
+                break;
+            default:
+                throw new IllegalArgumentException("Tipo de scheduler no válido: " + typeScheduler);
+        }
+    }
+
     private void showConfigDialog(Frame parent) {
         this.configDialog.setTitle("Configuración");
         this.configDialog.setSize(423, 362);
@@ -122,12 +192,13 @@ public class SimulationUI extends javax.swing.JFrame {
 
         // Crear nuevo CPU
         operatingSystem.addProcessor();
+        this.numCPUs = cpuCount;
 
         // Obtener el último CPU añadido
-        OurCPU newCpu = operatingSystem.getCpuList().getValueByIndex(cpuCount);
+        OurCPU newCpu = operatingSystem.getCpuList().getValueByIndex(cpuCount-1);
 
         if (newCpu != null) {
-            newCpu.start(); // Iniciar el hilo del nuevo CPU
+            //newCpu.start(); // Iniciar el hilo del nuevo CPU
             this.updateCPUDisplays(); // Refrescar la UI
             this.updateCPUList(operatingSystem.getCpuList());
             JOptionPane.showMessageDialog(this, "Nuevo CPU añadido con éxito!", "Añadir CPUs", JOptionPane.INFORMATION_MESSAGE);
@@ -162,6 +233,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
             // Eliminarlo del sistema
             operatingSystem.removeCPU(lastCpu);
+            this.numCPUs = this.numCPUs - 1;
 
             // Actualizar la UI
             this.updateCPUDisplays();
@@ -487,10 +559,10 @@ public class SimulationUI extends javax.swing.JFrame {
         jPanel6 = new javax.swing.JPanel();
         jLabel8 = new javax.swing.JLabel();
         fcfsButton = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        rrButton = new javax.swing.JButton();
+        spnButton = new javax.swing.JButton();
+        srtButton = new javax.swing.JButton();
+        hrrnButton = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         cancelDialogSimulation = new javax.swing.JButton();
         createProcessDialog = new javax.swing.JDialog();
@@ -512,12 +584,15 @@ public class SimulationUI extends javax.swing.JFrame {
         cancelPDButton = new javax.swing.JButton();
         controlPanel = new javax.swing.JPanel();
         createButton = new javax.swing.JButton();
-        loadButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
+        jSeparator3 = new javax.swing.JSeparator();
         startButton = new javax.swing.JButton();
         stopButton = new javax.swing.JButton();
-        jSeparator2 = new javax.swing.JSeparator();
+        jSeparator4 = new javax.swing.JSeparator();
+        jSeparator5 = new javax.swing.JSeparator();
         createProcessButton = new javax.swing.JButton();
+        jSeparator6 = new javax.swing.JSeparator();
+        jSeparator7 = new javax.swing.JSeparator();
         cycleDurationSlider = new javax.swing.JSlider();
         mainSimulationPanel = new javax.swing.JPanel();
         processDetailsPanel = new javax.swing.JPanel();
@@ -539,6 +614,8 @@ public class SimulationUI extends javax.swing.JFrame {
         processJTable = new javax.swing.JTable();
         mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
+        saveDataMenuItem = new javax.swing.JMenuItem();
+        writeDataMenuItem = new javax.swing.JMenuItem();
         simulationOptions = new javax.swing.JMenu();
         jMenu3 = new javax.swing.JMenu();
         fcfsMenuItem = new javax.swing.JMenuItem();
@@ -616,17 +693,37 @@ public class SimulationUI extends javax.swing.JFrame {
         });
         jPanel6.add(fcfsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 160, -1, -1));
 
-        jButton2.setText("Round Robin");
-        jPanel6.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 160, -1, -1));
+        rrButton.setText("Round Robin");
+        rrButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rrButtonActionPerformed(evt);
+            }
+        });
+        jPanel6.add(rrButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 160, -1, -1));
 
-        jButton3.setText("SPN");
-        jPanel6.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 160, -1, -1));
+        spnButton.setText("SPN");
+        spnButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                spnButtonActionPerformed(evt);
+            }
+        });
+        jPanel6.add(spnButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 160, -1, -1));
 
-        jButton5.setText("SRT");
-        jPanel6.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 160, -1, -1));
+        srtButton.setText("SRT");
+        srtButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                srtButtonActionPerformed(evt);
+            }
+        });
+        jPanel6.add(srtButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 160, -1, -1));
 
-        jButton4.setText("HRRN");
-        jPanel6.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 160, -1, -1));
+        hrrnButton.setText("HRRN");
+        hrrnButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hrrnButtonActionPerformed(evt);
+            }
+        });
+        jPanel6.add(hrrnButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 160, -1, -1));
 
         jButton1.setText("FeedBack");
         jPanel6.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 160, -1, -1));
@@ -729,13 +826,13 @@ public class SimulationUI extends javax.swing.JFrame {
         });
         controlPanel.add(createButton);
 
-        loadButton.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
-        loadButton.setText("Cargar");
-        controlPanel.add(loadButton);
-
         jSeparator1.setBackground(new java.awt.Color(0, 0, 0));
         jSeparator1.setForeground(new java.awt.Color(0, 0, 0));
         controlPanel.add(jSeparator1);
+
+        jSeparator3.setBackground(new java.awt.Color(0, 0, 0));
+        jSeparator3.setForeground(new java.awt.Color(0, 0, 0));
+        controlPanel.add(jSeparator3);
 
         startButton.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         startButton.setText("Iniciar");
@@ -750,7 +847,14 @@ public class SimulationUI extends javax.swing.JFrame {
         stopButton.setText("Detener");
         stopButton.setEnabled(false);
         controlPanel.add(stopButton);
-        controlPanel.add(jSeparator2);
+
+        jSeparator4.setBackground(new java.awt.Color(0, 0, 0));
+        jSeparator4.setForeground(new java.awt.Color(0, 0, 0));
+        controlPanel.add(jSeparator4);
+
+        jSeparator5.setBackground(new java.awt.Color(0, 0, 0));
+        jSeparator5.setForeground(new java.awt.Color(0, 0, 0));
+        controlPanel.add(jSeparator5);
 
         createProcessButton.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         createProcessButton.setText("(+) Proceso");
@@ -761,6 +865,14 @@ public class SimulationUI extends javax.swing.JFrame {
             }
         });
         controlPanel.add(createProcessButton);
+
+        jSeparator6.setBackground(new java.awt.Color(0, 0, 0));
+        jSeparator6.setForeground(new java.awt.Color(0, 0, 0));
+        controlPanel.add(jSeparator6);
+
+        jSeparator7.setBackground(new java.awt.Color(0, 0, 0));
+        jSeparator7.setForeground(new java.awt.Color(0, 0, 0));
+        controlPanel.add(jSeparator7);
 
         cycleDurationSlider.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
         cycleDurationSlider.setMajorTickSpacing(1000);
@@ -953,6 +1065,25 @@ public class SimulationUI extends javax.swing.JFrame {
         getContentPane().add(mainSimulationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 1370, 700));
 
         fileMenu.setText("Archivo");
+
+        saveDataMenuItem.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        saveDataMenuItem.setText("Guardar Cambios");
+        saveDataMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveDataMenuItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(saveDataMenuItem);
+
+        writeDataMenuItem.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        writeDataMenuItem.setText("Cargar Datos");
+        writeDataMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                writeDataMenuItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(writeDataMenuItem);
+
         mainMenuBar.add(fileMenu);
 
         simulationOptions.setText("Simulación");
@@ -1033,6 +1164,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         // TODO add your handling code here:
         if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
+
             this.showStartSimulationDialog(this);
 
         } else {
@@ -1050,20 +1182,8 @@ public class SimulationUI extends javax.swing.JFrame {
     private void fcfsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fcfsButtonActionPerformed
         // TODO add your handling code here:
         // Algoritmo escogido
-        this.operatingSystem.setScheduler(new pFirstComeFirstServed());
-
-        // Deshabilitar botones iniciales
-        this.createButton.setEnabled(false);
-        this.startButton.setEnabled(false);
-
-        // Lanzar simulacion inicial
-        this.startSimulationDialog.dispose();
-
-        // INICIAR SIMULACION
-        this.startSimulation = true;
-        this.createCpusButton.setEnabled(false);
-        this.deleteCpusButton.setEnabled(false);
-        this.operatingSystem.startSystem();
+        int choice = 1;
+        this.gottaStartSimulation(choice);
     }//GEN-LAST:event_fcfsButtonActionPerformed
 
     private void createCpusButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createCpusButtonActionPerformed
@@ -1194,6 +1314,65 @@ public class SimulationUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_generateRPButtonActionPerformed
 
+    private void saveDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveDataMenuItemActionPerformed
+        // TODO add your handling code here:
+        if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
+
+            // Guardar configuracion deseada antes de la simulacion
+            fileManager.saveSimulationConfig(this.cycleDuration, this.numCPUs, this.numProcesses);
+            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.numCPUs);
+            JOptionPane.showMessageDialog(this, "Configuración guardada en la raíz del proyecto!", "Configuration Savedata", JOptionPane.INFORMATION_MESSAGE);
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Debe crear los elementos principales en la seccion de 'CREAR' o 'CARGAR' antes de poder reescribir datos.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }//GEN-LAST:event_saveDataMenuItemActionPerformed
+
+    private void rrButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rrButtonActionPerformed
+        // TODO add your handling code here:
+        // Algoritmo escogido
+        int choice = 2;
+        this.gottaStartSimulation(choice);
+
+    }//GEN-LAST:event_rrButtonActionPerformed
+
+    private void spnButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spnButtonActionPerformed
+        // TODO add your handling code here:
+        // Algoritmo escogido
+        int choice = 3;
+        this.gottaStartSimulation(choice);
+    }//GEN-LAST:event_spnButtonActionPerformed
+
+    private void srtButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_srtButtonActionPerformed
+        // TODO add your handling code here:
+        // Algoritmo escogido
+        int choice = 4;
+        this.gottaStartSimulation(choice);
+    }//GEN-LAST:event_srtButtonActionPerformed
+
+    private void hrrnButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hrrnButtonActionPerformed
+        // TODO add your handling code here:
+        // Algoritmo escogido
+        int choice = 5;
+        this.gottaStartSimulation(choice);
+    }//GEN-LAST:event_hrrnButtonActionPerformed
+
+    private void writeDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_writeDataMenuItemActionPerformed
+        // TODO add your handling code here:
+        // ESCRIBIR LA DATA PROVENIENTE DEL TXT Y JSON
+        if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
+
+            // Cargar configuracion deseada antes de la simulacion
+            fileManager.saveSimulationConfig(this.cycleDuration, this.numCPUs, this.numProcesses);
+            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.numCPUs);
+            JOptionPane.showMessageDialog(this, "Configuración ha sido cargada en el sistema!", "Configuration Savedata", JOptionPane.INFORMATION_MESSAGE);
+
+        } else {
+            JOptionPane.showMessageDialog(this, "Debe crear los elementos principales en la seccion de 'CREAR' o 'CARGAR' antes de poder reescribir datos.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_writeDataMenuItemActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1258,13 +1437,10 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JMenu fileMenu;
     private javax.swing.JButton generateRPButton;
     private javax.swing.JTextField generateRandomProcessField;
+    private javax.swing.JButton hrrnButton;
     private javax.swing.JTextField instructionsField1;
     private javax.swing.JCheckBox ioBoundCheckBox;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
@@ -1282,9 +1458,12 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSeparator jSeparator5;
+    private javax.swing.JSeparator jSeparator6;
+    private javax.swing.JSeparator jSeparator7;
     private javax.swing.JPanel listFinishedPanel;
-    private javax.swing.JButton loadButton;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JPanel mainSimulationPanel;
     private javax.swing.JTextField nameField;
@@ -1296,12 +1475,17 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JPanel processTablePanel;
     private javax.swing.JPanel queueBlockedPanel;
     private javax.swing.JPanel queueReadyPanel;
+    private javax.swing.JButton rrButton;
+    private javax.swing.JMenuItem saveDataMenuItem;
     private javax.swing.JScrollPane scrollCpusPane;
     private javax.swing.JMenu simulationOptions;
     private javax.swing.JPanel simulationPanel;
+    private javax.swing.JButton spnButton;
+    private javax.swing.JButton srtButton;
     private javax.swing.JButton startButton;
     private javax.swing.JDialog startSimulationDialog;
     private javax.swing.JButton stopButton;
+    private javax.swing.JMenuItem writeDataMenuItem;
     // End of variables declaration//GEN-END:variables
 
     /**

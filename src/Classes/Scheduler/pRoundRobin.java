@@ -4,6 +4,7 @@
  */
 package Classes.Scheduler;
 
+import OperativeSystem.QueueManager;
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.ProcessState;
 import EDD.OurQueue;

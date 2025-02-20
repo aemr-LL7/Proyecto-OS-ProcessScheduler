@@ -4,7 +4,7 @@
  */
 package Classes.ProcessFactory;
 
-import Classes.Scheduler.QueueManager;
+import OperativeSystem.QueueManager;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

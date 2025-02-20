@@ -7,6 +7,8 @@ package FileManager;
 import Classes.ProcessFactory.OurProcess;
 import Classes.ProcessFactory.PCB;
 import EDD.OurHashTable;
+import EDD.SimpleList;
+import Main.GUI.SimulationUI;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
@@ -66,6 +68,18 @@ public class FileManager {
         }
     }
 
+    private boolean checkExistingData(SimulationUI ui, OurHashTable<OurProcess> processTable) {
+        return ui.getNumCPUs() > 0 || processTable.getEntriesList().getSize() > 0;
+    }
+
+    private void clearExistingData(SimulationUI ui, OurHashTable<OurProcess> processTable) {
+        // Limpiar la UI
+        ui.clearAllFields();
+
+        // Limpiar la tabla hash
+        processTable.clear();
+    }
+
     public void saveSimulationConfig(int cycleDuration, int numberOfCpus, int numberOfProcesses) {
         String configContent = "[General Params]\n"
                 + "CycleDuration=" + cycleDuration + "\n"
@@ -86,14 +100,37 @@ public class FileManager {
         }
     }
 
-    public void saveProcessData(OurHashTable<OurProcess> pcbTable) {
-        try (
-                Writer writer = new FileWriter(processDataFile)) {
-            // Convertir la HashTable a una SimpleList de PCBData
+    public void saveProcessData(OurHashTable<OurProcess> processHashTable, int numberOfCpus) {
+        try (Writer writer = new FileWriter(processDataFile)) {
+            StringBuilder jsonBuilder = new StringBuilder();
+            jsonBuilder.append("{\n");
 
-            // Convertir a JSON y escribir al archivo
-            // gson.toJson(container, writer);
-            System.out.println("Datos de PCBs guardados en " + processDataFile.getPath());
+            SimpleList<OurProcess> processList = processHashTable.getEntriesList();
+
+            for (int i = 0; i < processList.getSize(); i++) {
+                OurProcess process = processList.getValueByIndex(i);
+                if (process != null) {
+                    PCB pcb = process.getPcb();
+
+                    // Agregar el nombre del proceso como clave
+                    jsonBuilder.append("  \"").append(pcb.getName()).append("\": ");
+
+                    String pcbJson = gson.toJson(pcb);
+                    jsonBuilder.append(pcbJson);
+
+                    // Agregar coma si no es el último elemento
+                    if (i < processList.getSize() - 1) {
+                        jsonBuilder.append(",");
+                    }
+                    jsonBuilder.append("\n");
+                }
+            }
+
+            jsonBuilder.append("}");
+
+            // Escribir el JSON final
+            writer.write(jsonBuilder.toString());
+            System.out.println("Datos de procesos guardados en " + processDataFile.getPath());
 
         } catch (IOException e) {
             e.printStackTrace();

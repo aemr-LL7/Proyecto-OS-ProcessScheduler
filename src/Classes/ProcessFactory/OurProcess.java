@@ -4,7 +4,7 @@
  */
 package Classes.ProcessFactory;
 
-import Classes.Scheduler.QueueManager;
+import OperativeSystem.QueueManager;
 import OperativeSystem.Clock;
 import OperativeSystem.ClockListener;
 import OperativeSystem.ExceptionHandler;

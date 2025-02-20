@@ -1,0 +1,9 @@
+[General Params]
+CycleDuration=500
+NumberOfCpus=3
+NumberOfProcesses=1
+
+[CPUS]
+cpuId=0
+cpuId=1
+cpuId=2

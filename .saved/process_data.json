@@ -1,0 +1,38 @@
+{
+  "P1": {
+  "id": "u1",
+  "name": "P1",
+  "PC": 0,
+  "MAR": 0,
+  "state": "READY",
+  "totalInstructions": 16,
+  "isIOBound": false,
+  "exceptionCycleThreshold": 0,
+  "exceptionSolveNumber": 0,
+  "quantum": 0
+},
+  "P0": {
+  "id": "u2",
+  "name": "P0",
+  "PC": 0,
+  "MAR": 0,
+  "state": "READY",
+  "totalInstructions": 21,
+  "isIOBound": false,
+  "exceptionCycleThreshold": 0,
+  "exceptionSolveNumber": 0,
+  "quantum": 0
+},
+  "P0": {
+  "id": "u3",
+  "name": "P0",
+  "PC": 0,
+  "MAR": 0,
+  "state": "READY",
+  "totalInstructions": 27,
+  "isIOBound": true,
+  "exceptionCycleThreshold": 6,
+  "exceptionSolveNumber": 7,
+  "quantum": 0
+}
+}

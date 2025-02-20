@@ -7,7 +7,6 @@ package OperativeSystem;
 import Classes.ProcessFactory.DefaultProcessFactory;
 import Classes.ProcessFactory.OurProcess;
 import Classes.Scheduler.pFirstComeFirstServed;
-import Classes.Scheduler.QueueManager;
 import Classes.Scheduler.Scheduler;
 import EDD.SimpleList;
 import EDD.SimpleNode;
