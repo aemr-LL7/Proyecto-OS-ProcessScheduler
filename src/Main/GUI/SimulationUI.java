@@ -63,7 +63,7 @@ public class SimulationUI extends javax.swing.JFrame {
         // gui properties
         this.setTitle("Planificador de Procesos");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //this.setSize(1300, 775);
+        this.setSize(1320, 768);
         this.setLocationRelativeTo(null);
         this.setResizable(false);
 
@@ -92,50 +92,94 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void showConfigDialog(Frame parent) {
         this.configDialog.setTitle("Configuración");
-        this.configDialog.setSize(400, 350);
+        this.configDialog.setSize(423, 362);
         this.configDialog.setLocationRelativeTo(parent);
         this.configDialog.setVisible(true);
     }
 
     private void showStartSimulationDialog(Frame parent) {
         this.startSimulationDialog.setTitle("Iniciar Simulación");
-        this.startSimulationDialog.setSize(634, 318);
+        this.startSimulationDialog.setSize(633, 310);
         this.startSimulationDialog.setLocationRelativeTo(parent);
         this.startSimulationDialog.setVisible(true);
     }
 
-    private void addCPUToSimulation() {
-        operatingSystem.addProcessor();
-        this.updateCPUDisplays();
-        JOptionPane.showMessageDialog(this, "Un CPU se ha creado con éxito!", "Añadir CPUs", JOptionPane.INFORMATION_MESSAGE);
-
-        // Habilitar o deshabilitar el botón según la cantidad de CPUs
+    private void showCreateProcessDialog(Frame parent) {
+        this.createProcessDialog.setTitle("Crear Nuevo Proceso");
+        this.createProcessDialog.setSize(595, 355);
+        this.createProcessDialog.setLocationRelativeTo(parent);
+        this.createProcessDialog.setVisible(true);
     }
 
-    private void removeCPUFromSimulation() {
-        int selectedIndex = cpusJList.getSelectedIndex();
+    private void addCPUToSimulation() {
+        int cpuCount = operatingSystem.getCpuList().getSize();
 
-        if (selectedIndex == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione un CPU para eliminar.", "Error", JOptionPane.ERROR_MESSAGE);
+        // Verificar si ya tenemos el máximo permitido (por ejemplo, 3 CPUs)
+        if (cpuCount >= 3) {
+            JOptionPane.showMessageDialog(this, "No se pueden añadir más de 3 CPUs.", "Límite alcanzado", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "¿Está seguro de que desea eliminar el CPU seleccionado?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            // Obtener el CPU seleccionado
-            OurCPU selectedCPU = operatingSystem.getCpuList().getValueByIndex(selectedIndex);
+        // Crear nuevo CPU
+        operatingSystem.addProcessor();
 
-            operatingSystem.removeCPU(selectedCPU);
+        // Obtener el último CPU añadido
+        OurCPU newCpu = operatingSystem.getCpuList().getValueByIndex(cpuCount);
 
-            // Actualizar la vista de los CPUs solo si hay restantes
-            if (operatingSystem.getCpuList().getSize() > 0) {
-                updateCPUDisplays();  // 
-            }
+        if (newCpu != null) {
+            newCpu.start(); // Iniciar el hilo del nuevo CPU
+            this.updateCPUDisplays(); // Refrescar la UI
+            this.updateCPUList(operatingSystem.getCpuList());
+            JOptionPane.showMessageDialog(this, "Nuevo CPU añadido con éxito!", "Añadir CPUs", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "Error al añadir un nuevo CPU.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void addNewProcessToSimulation() {
+    private void removeCPUFromSimulation() {
+//        int selectedIndex = cpusJList.getSelectedIndex();
+//
+//        if (selectedIndex == -1) {
+//            JOptionPane.showMessageDialog(this, "Seleccione un CPU para eliminar.", "Error", JOptionPane.ERROR_MESSAGE);
+//            return;
+//        }
 
+        int cpuCount = operatingSystem.getCpuList().getSize();
+
+        if (cpuCount <= 1) {
+            System.out.println("=>" + "NO ME ELIMINEI LOQUETE");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Está seguro de que desea eliminar el CPU " + cpuCount + "?",
+                "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Obtener el último CPU de la lista
+            OurCPU lastCpu = operatingSystem.getCpuList().getValueByIndex(cpuCount - 1);
+
+            // Eliminarlo del sistema
+            operatingSystem.removeCPU(lastCpu);
+
+            // Actualizar la UI
+            this.updateCPUDisplays();
+
+            JOptionPane.showMessageDialog(this, "CPU " + cpuCount + " eliminado correctamente.", "Eliminación exitosa", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void addProcessToSimulation(String name, int instructions, boolean isIOBound, int exceptionThreshold, int exceptionSolve) {
+        OurProcess newProcess = OperatingSystem.getInstance().addNewProcess(name, instructions, isIOBound, exceptionThreshold, exceptionSolve);
+
+        if (newProcess != null) {
+            JOptionPane.showMessageDialog(this, "Proceso '" + name + "' creado con exito!", "Proceso Creado", JOptionPane.INFORMATION_MESSAGE);
+            this.updateProcessTable();
+            this.createProcessDialog.dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, "Error al crear el proceso.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     // Metodos para actualizar los valores de las tablas y lista de cpus
@@ -143,6 +187,24 @@ public class SimulationUI extends javax.swing.JFrame {
         this.cpuListModel.clear();
         // Crea los cpus y procesos pero no inicia la simulacion
         operatingSystem.initUISystemValues(numCPUs, numProcesses);
+    }
+
+    private void updateCPUList(SimpleList<OurCPU> cpuList) {
+
+        this.cpuListModel.clear();
+
+        // Actualizar cada elemento de CPU segun el indice en la lista de cpus
+        if (cpuList.getSize() >= 1) {
+            cpuListModel.addElement("CPU 1");
+        }
+        if (cpuList.getSize() >= 2) {
+            cpuListModel.addElement("CPU 2");
+        }
+        if (cpuList.getSize() >= 3) {
+            cpuListModel.addElement("CPU 3");
+        }
+
+        this.cpusJList.setModel(cpuListModel);
     }
 
     private void updateProcessTable() {
@@ -171,82 +233,69 @@ public class SimulationUI extends javax.swing.JFrame {
         }
     }
 
+    // Metodo para actualizar los detalles de los cpu en ejecucion
     private void updateCPUDisplays() {
         SimpleList<OurCPU> cpuList = operatingSystem.getCpuList();
-        if (cpuList == null || cpuList.getSize() == 0) {
-            cpuListModel.clear();
-            return;
-        }
-        cpuListModel.clear();
+        int activeCPUs = cpuList.getSize(); // Obtener num de CPUs activos
 
-        // Actualizar cada panel de CPU segun el indice en la lista de cpus
-        if (cpuList.getSize() >= 1) {
-            updateSingleCPUDisplay(cpu1Panel, cpuList.getValueByIndex(0), "CPU 1");
-            cpuListModel.addElement("CPU 1 - " + (cpuList.getValueByIndex(0).isIsBusy() ? "Activo" : "Inactivo"));
-        }
-        if (cpuList.getSize() >= 2) {
-            updateSingleCPUDisplay(cpu2Panel, cpuList.getValueByIndex(1), "CPU 2");
-            cpuListModel.addElement("CPU 2 - " + (cpuList.getValueByIndex(1).isIsBusy() ? "Activo" : "Inactivo"));
-        }
-        if (cpuList.getSize() >= 3) {
-            updateSingleCPUDisplay(cpu3Panel, cpuList.getValueByIndex(2), "CPU 3");
-            cpuListModel.addElement("CPU 3 - " + (cpuList.getValueByIndex(2).isIsBusy() ? "Activo" : "Inactivo"));
-        }
-        cpusJList.setModel(cpuListModel);
+        updateSingleCPUDisplay(cpu1Panel, (activeCPUs >= 1) ? cpuList.getValueByIndex(0) : null, "CPU 1");
+        updateSingleCPUDisplay(cpu2Panel, (activeCPUs >= 2) ? cpuList.getValueByIndex(1) : null, "CPU 2");
+        updateSingleCPUDisplay(cpu3Panel, (activeCPUs >= 3) ? cpuList.getValueByIndex(2) : null, "CPU 3");
     }
 
     private void updateSingleCPUDisplay(JPanel cpuPanel, OurCPU cpu, String title) {
-        if (cpuPanel == null || cpu == null) {
+        if (cpuPanel == null) {
             return;
         }
 
-        // Configurar panel
         cpuPanel.removeAll();
         cpuPanel.setLayout(new BorderLayout(5, 5));
 
-        // Crear un borde con título que indique el estado
-        String statusText = cpu.isIsBusy() ? " - Activo" : " - Inactivo";
+        if (cpu == null) {
+            // CPU fue eliminado, marcar inactivo
+            cpuPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 2), title + " - Inactivo"));
+            cpuPanel.setBackground(new Color(220, 220, 220));
+            JLabel inactiveLabel = new JLabel("CPU no disponible", JLabel.CENTER);
+            inactiveLabel.setForeground(Color.DARK_GRAY);
+            cpuPanel.add(inactiveLabel, BorderLayout.CENTER);
 
-        cpuPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(cpu.isIsBusy() ? new Color(0, 150, 0) : Color.GRAY, 2),
-                title + statusText
-        ));
-
-        // Establecer el color de fondo segun su estado
-        cpuPanel.setBackground(cpu.isIsBusy() ? new Color(220, 255, 220) : new Color(240, 240, 240));
-
-        // Nuevo panel para info detallada
-        JPanel processInfoPanel = new JPanel();
-        processInfoPanel.setLayout(new GridLayout(0, 1, 2, 2));
-        processInfoPanel.setOpaque(false);
-
-        if (cpu.getCurrentProcess() != null) {
-            PCB currentPCB = cpu.getCurrentProcess().getPcb();
-
-            processInfoPanel.add(createInfoLabel("ID: " + currentPCB.getId()));
-            processInfoPanel.add(createInfoLabel("Proceso: " + currentPCB.getName()));
-            processInfoPanel.add(createInfoLabel("PC: " + currentPCB.getPC()));
-            processInfoPanel.add(createInfoLabel("Estado: " + currentPCB.getState()));
-
-            // Agregar barra de progreso
-            JProgressBar progressBar = new JProgressBar(0, currentPCB.getTotalInstructions());
-            progressBar.setValue(currentPCB.getPC());
-            progressBar.setStringPainted(true);
-            progressBar.setString(currentPCB.getPC() + "/" + currentPCB.getTotalInstructions());
-
-            JPanel progressPanel = new JPanel(new BorderLayout());
-            progressPanel.setOpaque(false);
-            progressPanel.add(new JLabel("Progreso: "), BorderLayout.WEST);
-            progressPanel.add(progressBar, BorderLayout.CENTER);
-
-            // Pal panel principal
-            cpuPanel.add(processInfoPanel, BorderLayout.CENTER);
-            cpuPanel.add(progressPanel, BorderLayout.SOUTH);
         } else {
-            JLabel noProcessLabel = new JLabel("Sin proceso en ejecución");
-            noProcessLabel.setHorizontalAlignment(JLabel.CENTER);
-            noProcessLabel.setForeground(Color.GRAY);
-            cpuPanel.add(noProcessLabel, BorderLayout.CENTER);
+            // CPU sigue activo
+            boolean isBusy = cpu.isIsBusy();
+            cpuPanel.setBorder(BorderFactory.createTitledBorder(
+                    BorderFactory.createLineBorder(isBusy ? new Color(0, 150, 0) : Color.GRAY, 2),
+                    title + (isBusy ? " - Ocupado" : " - Libre")
+            ));
+            cpuPanel.setBackground(isBusy ? new Color(220, 255, 220) : new Color(240, 240, 240));
+
+            JPanel processInfoPanel = new JPanel(new GridLayout(0, 1, 2, 2));
+            processInfoPanel.setOpaque(false);
+
+            if (cpu.getCurrentProcess() != null) {
+                PCB currentPCB = cpu.getCurrentProcess().getPcb();
+
+                processInfoPanel.add(createInfoLabel("ID: " + currentPCB.getId()));
+                processInfoPanel.add(createInfoLabel("Proceso: " + currentPCB.getName()));
+                processInfoPanel.add(createInfoLabel("PC: " + currentPCB.getPC()));
+                processInfoPanel.add(createInfoLabel("Estado: " + currentPCB.getState()));
+
+                JProgressBar progressBar = new JProgressBar(0, currentPCB.getTotalInstructions());
+                progressBar.setValue(currentPCB.getPC());
+                progressBar.setStringPainted(true);
+                progressBar.setString(currentPCB.getPC() + "/" + currentPCB.getTotalInstructions());
+
+                JPanel progressPanel = new JPanel(new BorderLayout());
+                progressPanel.setOpaque(false);
+                progressPanel.add(new JLabel("Progreso: "), BorderLayout.WEST);
+                progressPanel.add(progressBar, BorderLayout.CENTER);
+
+                cpuPanel.add(processInfoPanel, BorderLayout.CENTER);
+                cpuPanel.add(progressPanel, BorderLayout.SOUTH);
+            } else {
+                JLabel noProcessLabel = new JLabel("Sin proceso en ejecución", JLabel.CENTER);
+                noProcessLabel.setForeground(Color.GRAY);
+                cpuPanel.add(noProcessLabel, BorderLayout.CENTER);
+            }
         }
 
         cpuPanel.revalidate();
@@ -294,7 +343,7 @@ public class SimulationUI extends javax.swing.JFrame {
         panel.putClientProperty("contentPanel", contentPanel);
     }
 
-    private void updatePanelContent(JPanel panel, OurQueue<PCB> queue) {
+    private void updatePanelContent(JPanel panel, OurQueue<PCB> queue, ProcessState expectedState) {
 
         JPanel contentPanel = (JPanel) panel.getClientProperty("contentPanel");
         if (contentPanel != null) {
@@ -303,7 +352,12 @@ public class SimulationUI extends javax.swing.JFrame {
             SimpleNode<PCB> currentNode = queue.getpFirst();
             while (currentNode != null) {
                 PCB pcb = currentNode.getData();
-                contentPanel.add(createPCBLabel(pcb));
+
+                // Solo agregar si el proceso esta en el estado correcto
+                if (pcb.getState() == expectedState) {
+                    contentPanel.add(createPCBLabel(pcb));
+                }
+
                 currentNode = currentNode.getpNext();
             }
 
@@ -312,16 +366,21 @@ public class SimulationUI extends javax.swing.JFrame {
         }
     }
 
-    private void updatePanelContentList(JPanel panel, SimpleList<PCB> list) {
+    private void updatePanelContentList(JPanel panel, SimpleList<PCB> list, ProcessState expectedState) {
 
         JPanel contentPanel = (JPanel) panel.getClientProperty("contentPanel");
         if (contentPanel != null) {
             contentPanel.removeAll();
 
             SimpleNode<PCB> currentNode = list.getpFirst();
+
             while (currentNode != null) {
                 PCB pcb = currentNode.getData();
-                contentPanel.add(createPCBLabel(pcb));
+
+                if (pcb.getState() == expectedState) {
+                    contentPanel.add(createPCBLabel(pcb));
+                }
+
                 currentNode = currentNode.getpNext();
             }
 
@@ -389,26 +448,18 @@ public class SimulationUI extends javax.swing.JFrame {
 
 // Metodo para actualizar todos los paneles
     public void updateQueueDisplays() {
-        try {
-            // Adquirir semáforos
-            queueManager.getReadyQueueSemaphore().acquire();
-            queueManager.getBlockedQueueSemaphore().acquire();
-            queueManager.getFinishedQueueSemaphore().acquire();
 
-            // Actualizar paneles (+ CPUS)
-            this.updatePanelContent(queueReadyPanel, queueManager.getReadyQueue());
-            this.updatePanelContent(queueBlockedPanel, queueManager.getBlockedQueue());
-            this.updatePanelContentList(listFinishedPanel, queueManager.getFinishedProcesses());
-            this.updateCPUDisplays();
-            this.updateProcessTable();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            // Liberar semáforos
-            queueManager.getReadyQueueSemaphore().release();
-            queueManager.getBlockedQueueSemaphore().release();
-            queueManager.getFinishedQueueSemaphore().release();
-        }
+        // Adquirir semáforos
+        //queueManager.getReadyQueueSemaphore().acquire();
+        //queueManager.getBlockedQueueSemaphore().acquire();
+        //queueManager.getFinishedQueueSemaphore().acquire();
+        // Actualizar paneles (+ CPUS)
+        this.updatePanelContent(queueReadyPanel, queueManager.getReadyQueue(), ProcessState.READY);
+        this.updatePanelContent(queueBlockedPanel, queueManager.getBlockedQueue(), ProcessState.BLOCKED);
+        this.updatePanelContentList(listFinishedPanel, queueManager.getFinishedProcesses(), ProcessState.FINISHED);
+        this.updateCPUDisplays();
+        this.updateProcessTable();
+
     }
 
     /**
@@ -442,6 +493,23 @@ public class SimulationUI extends javax.swing.JFrame {
         jButton4 = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         cancelDialogSimulation = new javax.swing.JButton();
+        createProcessDialog = new javax.swing.JDialog();
+        jPanel1 = new javax.swing.JPanel();
+        ioBoundCheckBox = new javax.swing.JCheckBox();
+        generateRandomProcessField = new javax.swing.JTextField();
+        exceptionSolveField = new javax.swing.JTextField();
+        exceptionField = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        nameField = new javax.swing.JTextField();
+        instructionsField1 = new javax.swing.JTextField();
+        generateRPButton = new javax.swing.JButton();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        createPDButton = new javax.swing.JButton();
+        cancelPDButton = new javax.swing.JButton();
         controlPanel = new javax.swing.JPanel();
         createButton = new javax.swing.JButton();
         loadButton = new javax.swing.JButton();
@@ -474,6 +542,8 @@ public class SimulationUI extends javax.swing.JFrame {
         simulationOptions = new javax.swing.JMenu();
         jMenu3 = new javax.swing.JMenu();
         fcfsMenuItem = new javax.swing.JMenuItem();
+
+        configDialog.getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -525,7 +595,9 @@ public class SimulationUI extends javax.swing.JFrame {
         });
         jPanel3.add(cancelDialogParams, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 270, -1, -1));
 
-        configDialog.getContentPane().add(jPanel3, java.awt.BorderLayout.CENTER);
+        configDialog.getContentPane().add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 420, 340));
+
+        startSimulationDialog.getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -569,7 +641,79 @@ public class SimulationUI extends javax.swing.JFrame {
         });
         jPanel5.add(cancelDialogSimulation, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 240, -1, -1));
 
-        startSimulationDialog.getContentPane().add(jPanel5, java.awt.BorderLayout.CENTER);
+        startSimulationDialog.getContentPane().add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
+
+        createProcessDialog.getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Crear un Proceso"));
+        jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        ioBoundCheckBox.setText("I/O Bound?");
+        ioBoundCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ioBoundCheckBoxActionPerformed(evt);
+            }
+        });
+        jPanel1.add(ioBoundCheckBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 40, -1, 23));
+        jPanel1.add(generateRandomProcessField, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 190, 60, 23));
+
+        exceptionSolveField.setEnabled(false);
+        jPanel1.add(exceptionSolveField, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 180, 83, 23));
+
+        exceptionField.setEnabled(false);
+        jPanel1.add(exceptionField, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 110, 83, 23));
+
+        jLabel1.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        jLabel1.setText("a generar");
+        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 160, -1, -1));
+
+        jLabel2.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        jLabel2.setText("Instrucciones Totales:");
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 40, -1, -1));
+
+        jLabel6.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        jLabel6.setText("Ciclos para generar excepción:");
+        jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 80, -1, -1));
+
+        jLabel7.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        jLabel7.setText("Ciclos para resolver excepción:");
+        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 150, -1, -1));
+        jPanel1.add(nameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 70, 120, 23));
+        jPanel1.add(instructionsField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 70, 60, 23));
+
+        generateRPButton.setText("Generar Procesos");
+        generateRPButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                generateRPButtonActionPerformed(evt);
+            }
+        });
+        jPanel1.add(generateRPButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 190, -1, -1));
+
+        jLabel9.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        jLabel9.setText("Nombre del proceso:");
+        jPanel1.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 40, -1, -1));
+
+        jLabel10.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 12)); // NOI18N
+        jLabel10.setText("Numero de procesos");
+        jPanel1.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 140, -1, -1));
+
+        createProcessDialog.getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 0, 550, 260));
+
+        createPDButton.setText("Crear");
+        createPDButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createPDButtonActionPerformed(evt);
+            }
+        });
+        createProcessDialog.getContentPane().add(createPDButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 270, 83, -1));
+
+        cancelPDButton.setText("Cancelar");
+        cancelPDButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelPDButtonActionPerformed(evt);
+            }
+        });
+        createProcessDialog.getContentPane().add(cancelPDButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 270, 100, -1));
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -636,7 +780,7 @@ public class SimulationUI extends javax.swing.JFrame {
         });
         controlPanel.add(cycleDurationSlider);
 
-        getContentPane().add(controlPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1300, 50));
+        getContentPane().add(controlPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1370, 50));
 
         mainSimulationPanel.setBackground(new java.awt.Color(153, 0, 153));
         mainSimulationPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -647,14 +791,14 @@ public class SimulationUI extends javax.swing.JFrame {
         processDetailsPanel.setLayout(processDetailsPanelLayout);
         processDetailsPanelLayout.setHorizontalGroup(
             processDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGap(0, 260, Short.MAX_VALUE)
         );
         processDetailsPanelLayout.setVerticalGroup(
             processDetailsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 433, Short.MAX_VALUE)
+            .addGap(0, 283, Short.MAX_VALUE)
         );
 
-        mainSimulationPanel.add(processDetailsPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 270, 460));
+        mainSimulationPanel.add(processDetailsPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 270, 310));
 
         cpusPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("CPU Control"));
 
@@ -680,7 +824,7 @@ public class SimulationUI extends javax.swing.JFrame {
         });
         cpusPanel.add(deleteCpusButton);
 
-        mainSimulationPanel.add(cpusPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 500, 270, 220));
+        mainSimulationPanel.add(cpusPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 340, 270, 260));
 
         simulationPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Simulacion"));
         simulationPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -695,10 +839,10 @@ public class SimulationUI extends javax.swing.JFrame {
         );
         cpu1PanelLayout.setVerticalGroup(
             cpu1PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 117, Short.MAX_VALUE)
+            .addGap(0, 97, Short.MAX_VALUE)
         );
 
-        simulationPanel.add(cpu1Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 70, 150, 140));
+        simulationPanel.add(cpu1Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 30, 150, 120));
 
         cpu2Panel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "CPU-X", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Yu Gothic UI Semibold", 0, 12))); // NOI18N
 
@@ -710,10 +854,10 @@ public class SimulationUI extends javax.swing.JFrame {
         );
         cpu2PanelLayout.setVerticalGroup(
             cpu2PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 117, Short.MAX_VALUE)
+            .addGap(0, 97, Short.MAX_VALUE)
         );
 
-        simulationPanel.add(cpu2Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 220, 150, 140));
+        simulationPanel.add(cpu2Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 30, 150, 120));
 
         cpu3Panel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "CPU-X", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Yu Gothic UI Semibold", 0, 12))); // NOI18N
 
@@ -725,10 +869,10 @@ public class SimulationUI extends javax.swing.JFrame {
         );
         cpu3PanelLayout.setVerticalGroup(
             cpu3PanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 117, Short.MAX_VALUE)
+            .addGap(0, 97, Short.MAX_VALUE)
         );
 
-        simulationPanel.add(cpu3Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 370, 150, 140));
+        simulationPanel.add(cpu3Panel, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 30, 150, 120));
 
         listFinishedPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "LISTA DE TERMINADOS", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Yu Gothic UI Semibold", 0, 12))); // NOI18N
 
@@ -736,14 +880,14 @@ public class SimulationUI extends javax.swing.JFrame {
         listFinishedPanel.setLayout(listFinishedPanelLayout);
         listFinishedPanelLayout.setHorizontalGroup(
             listFinishedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 500, Short.MAX_VALUE)
+            .addGap(0, 210, Short.MAX_VALUE)
         );
         listFinishedPanelLayout.setVerticalGroup(
             listFinishedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 47, Short.MAX_VALUE)
         );
 
-        simulationPanel.add(listFinishedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 300, 510, 70));
+        simulationPanel.add(listFinishedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 200, 220, 70));
 
         queueReadyPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "COLA DE LISTOS", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Yu Gothic UI Semibold", 0, 12))); // NOI18N
 
@@ -751,14 +895,14 @@ public class SimulationUI extends javax.swing.JFrame {
         queueReadyPanel.setLayout(queueReadyPanelLayout);
         queueReadyPanelLayout.setHorizontalGroup(
             queueReadyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 500, Short.MAX_VALUE)
+            .addGap(0, 210, Short.MAX_VALUE)
         );
         queueReadyPanelLayout.setVerticalGroup(
             queueReadyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 47, Short.MAX_VALUE)
         );
 
-        simulationPanel.add(queueReadyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 90, 510, 70));
+        simulationPanel.add(queueReadyPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 200, 220, 70));
 
         queueBlockedPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "COLA DE BLOQUEADOS", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Yu Gothic UI Semibold", 0, 12))); // NOI18N
 
@@ -766,20 +910,20 @@ public class SimulationUI extends javax.swing.JFrame {
         queueBlockedPanel.setLayout(queueBlockedPanelLayout);
         queueBlockedPanelLayout.setHorizontalGroup(
             queueBlockedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 500, Short.MAX_VALUE)
+            .addGap(0, 210, Short.MAX_VALUE)
         );
         queueBlockedPanelLayout.setVerticalGroup(
             queueBlockedPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 47, Short.MAX_VALUE)
         );
 
-        simulationPanel.add(queueBlockedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 200, 510, 70));
+        simulationPanel.add(queueBlockedPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(280, 200, 220, 70));
 
         clockTickCycleLabel.setFont(new java.awt.Font("Yu Gothic UI Semibold", 0, 14)); // NOI18N
         clockTickCycleLabel.setText("Ciclo Global de Reloj: ");
-        simulationPanel.add(clockTickCycleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 30, 270, 20));
+        simulationPanel.add(clockTickCycleLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(530, 40, 270, 20));
 
-        mainSimulationPanel.add(simulationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 20, 980, 530));
+        mainSimulationPanel.add(simulationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 20, 980, 310));
 
         processTablePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Tabla de Procesos"));
         processTablePanel.setLayout(new java.awt.BorderLayout());
@@ -804,9 +948,9 @@ public class SimulationUI extends javax.swing.JFrame {
 
         processTablePanel.add(processTable, java.awt.BorderLayout.CENTER);
 
-        mainSimulationPanel.add(processTablePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 560, 980, 190));
+        mainSimulationPanel.add(processTablePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 340, 980, 260));
 
-        getContentPane().add(mainSimulationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 1300, 760));
+        getContentPane().add(mainSimulationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 1370, 700));
 
         fileMenu.setText("Archivo");
         jMenuBar1.add(fileMenu);
@@ -873,13 +1017,12 @@ public class SimulationUI extends javax.swing.JFrame {
             System.out.println("DURACION: " + this.getCycleDuration() + "\nCPUS: " + this.getNumCPUs() + "\nPROCESOS: " + this.getNumProcesses());
             this.configDialog.dispose();
             // Cambiar estado de botones
-            this.createCpusButton.setEnabled(true);
-            this.deleteCpusButton.setEnabled(true);
             this.createProcessButton.setEnabled(true);
             this.cycleDurationSlider.setEnabled(true);
 
-            // Establecer boton inicial apagado
             this.createButton.setEnabled(false);
+            this.createCpusButton.setEnabled(true);
+            this.deleteCpusButton.setEnabled(true);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this.configDialog, "Por favor, ingrese valores numéricos válidos.\n- Duración del ciclo debe ser >= 500 ms\n- Número de CPUs debe ser 1<= x <= 3\n- Número de procesos debe ser >= 1", "Error", JOptionPane.ERROR_MESSAGE);
@@ -917,17 +1060,21 @@ public class SimulationUI extends javax.swing.JFrame {
         this.startSimulationDialog.dispose();
 
         // INICIAR SIMULACION
+        this.startSimulation = true;
+        this.createCpusButton.setEnabled(false);
+        this.deleteCpusButton.setEnabled(false);
         this.operatingSystem.startSystem();
     }//GEN-LAST:event_fcfsButtonActionPerformed
 
     private void createCpusButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createCpusButtonActionPerformed
         // TODO add your handling code here:
-        if (this.operatingSystem.getCpuList().getSize() < 3) {
-            addCPUToSimulation();  // Añadir CPU si hay menos de 3 CPUs
-        } else {
-            JOptionPane.showMessageDialog(this, "Ya no se pueden crear más CPUs.", "Límite de CPUs", JOptionPane.WARNING_MESSAGE);
+        if (this.operatingSystem.getCpuList().getSize() >= 3) {
+            JOptionPane.showMessageDialog(this, "No se pueden añadir más de 3 CPUs.", "Límite alcanzado", JOptionPane.WARNING_MESSAGE);
+            return;
         }
 
+        // Llamar para añadir un nuevo CPU
+        this.addCPUToSimulation();
 
     }//GEN-LAST:event_createCpusButtonActionPerformed
 
@@ -935,6 +1082,7 @@ public class SimulationUI extends javax.swing.JFrame {
         // TODO add your handling code here:
         if (this.operatingSystem.getCpuList().getSize() > 1) {
             this.removeCPUFromSimulation();
+            this.updateCPUList(this.operatingSystem.getCpuList());
         } else {
             JOptionPane.showMessageDialog(this, "Ya no se pueden eliminar más CPUs.", "Límite de CPUs", JOptionPane.WARNING_MESSAGE);
         }
@@ -947,6 +1095,7 @@ public class SimulationUI extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error, todavía no se han creado CPUs en el sistema!", "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        this.showCreateProcessDialog(this);
 
     }//GEN-LAST:event_createProcessButtonActionPerformed
 
@@ -956,6 +1105,94 @@ public class SimulationUI extends javax.swing.JFrame {
         System.out.println(newSpeed);
         operatingSystem.getSystemClock().setCycleDuration(newSpeed);
     }//GEN-LAST:event_cycleDurationSliderStateChanged
+
+    private void createPDButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createPDButtonActionPerformed
+        // TODO add your handling code here:
+        String name = nameField.getText().trim();
+
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "El nombre del proceso no puede estar vacio.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int instructions;
+        try {
+            instructions = Integer.parseInt(generateRandomProcessField.getText().trim());
+            if (instructions <= 0) {
+                throw new NumberFormatException();
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Ingrese un numero válido de instrucciones.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        boolean isIOBound = ioBoundCheckBox.isSelected();
+        int exceptionThreshold = 0;
+        int exceptionSolve = 0;
+
+        if (isIOBound) {
+            try {
+                exceptionThreshold = Integer.parseInt(exceptionField.getText().trim());
+                exceptionSolve = Integer.parseInt(exceptionSolveField.getText().trim());
+
+                if (exceptionThreshold <= 0 || exceptionSolve <= 0) {
+                    throw new NumberFormatException();
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Ingrese valores válidos para los ciclos de excepción.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        this.addProcessToSimulation(name, instructions, isIOBound, exceptionThreshold, exceptionSolve);
+
+    }//GEN-LAST:event_createPDButtonActionPerformed
+
+    private void cancelPDButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelPDButtonActionPerformed
+        // TODO add your handling code here:
+        this.createProcessDialog.dispose();
+    }//GEN-LAST:event_cancelPDButtonActionPerformed
+
+    private void ioBoundCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ioBoundCheckBoxActionPerformed
+        // TODO add your handling code here:
+        if (ioBoundCheckBox.isSelected()) {
+            exceptionField.setEnabled(true);
+            exceptionSolveField.setEnabled(true);
+        } else {
+            exceptionField.setEnabled(false);
+            exceptionSolveField.setEnabled(false);
+        }
+
+
+    }//GEN-LAST:event_ioBoundCheckBoxActionPerformed
+
+    private void generateRPButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generateRPButtonActionPerformed
+        // TODO add your handling code here:
+
+        // obtain new num of processes values
+        try {
+            int numOfProcesses = Integer.parseInt(generateRandomProcessField.getText());
+
+            if (numOfProcesses < 1) {
+                throw new NumberFormatException();
+            }
+
+            for (int i = 0; i < numOfProcesses; i++) {
+                System.out.println("Intentando crear proceso #" + (i + 1));
+                this.operatingSystem.generateNewProcess();
+            }
+
+            JOptionPane.showMessageDialog(this, numOfProcesses + " procesos creados con éxito!", "Procesos Creado", JOptionPane.INFORMATION_MESSAGE);
+
+            // Actualizar la tabla de procesos en la UI
+            this.updateProcessTable();
+            this.createProcessDialog.dispose();
+
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this.configDialog, "Por favor, ingrese valores numéricos válidos.\n- Duración del ciclo debe ser >= 500 ms\n- Número de CPUs debe ser 1<= x <= 3\n- Número de procesos debe ser >= 1", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+    }//GEN-LAST:event_generateRPButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -997,6 +1234,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JButton acceptDialog;
     private javax.swing.JButton cancelDialogParams;
     private javax.swing.JButton cancelDialogSimulation;
+    private javax.swing.JButton cancelPDButton;
     private javax.swing.JLabel clockTickCycleLabel;
     private javax.swing.JDialog configDialog;
     private javax.swing.JPanel controlPanel;
@@ -1007,24 +1245,39 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JPanel cpusPanel;
     private javax.swing.JButton createButton;
     private javax.swing.JButton createCpusButton;
+    private javax.swing.JButton createPDButton;
     private javax.swing.JButton createProcessButton;
+    private javax.swing.JDialog createProcessDialog;
     private javax.swing.JTextField cycleDurationField;
     private javax.swing.JSlider cycleDurationSlider;
     private javax.swing.JButton deleteCpusButton;
+    private javax.swing.JTextField exceptionField;
+    private javax.swing.JTextField exceptionSolveField;
     private javax.swing.JButton fcfsButton;
     private javax.swing.JMenuItem fcfsMenuItem;
     private javax.swing.JMenu fileMenu;
+    private javax.swing.JButton generateRPButton;
+    private javax.swing.JTextField generateRandomProcessField;
+    private javax.swing.JTextField instructionsField1;
+    private javax.swing.JCheckBox ioBoundCheckBox;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
@@ -1034,6 +1287,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JPanel listFinishedPanel;
     private javax.swing.JButton loadButton;
     private javax.swing.JPanel mainSimulationPanel;
+    private javax.swing.JTextField nameField;
     private javax.swing.JTextField numCPUsField;
     private javax.swing.JTextField numProcessesField;
     private javax.swing.JPanel processDetailsPanel;
@@ -1105,4 +1359,5 @@ public class SimulationUI extends javax.swing.JFrame {
     public javax.swing.JLabel getClockTickCycleLabel() {
         return clockTickCycleLabel;
     }
+
 }

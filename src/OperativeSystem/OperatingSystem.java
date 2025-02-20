@@ -72,7 +72,7 @@ public final class OperatingSystem {
             cpu.setName("CPU" + (i + 1));
             auxCpuList.addAtTheEnd(cpu);
             // init UI
-            SimulationUI.getSimulationUIInstance().getCpuListModel().addElement("CPU-" + i + " - Inactivo");
+            SimulationUI.getSimulationUIInstance().getCpuListModel().addElement("CPU-" + i);
         }
         // init UI
         SimulationUI.getSimulationUIInstance().getCpusJList().setModel(SimulationUI.getSimulationUIInstance().getCpuListModel());
@@ -152,7 +152,7 @@ public final class OperatingSystem {
 
     }
 
-    private void generateNewProcess() {
+    public void generateNewProcess() {
         if (getQueueManager().getReadyQueueSize() >= maxReadyQueueSize) {
             System.out.println("Cola de listos llena, no se generan nuevos procesos.");
             return;
@@ -167,6 +167,16 @@ public final class OperatingSystem {
         OurProcess newProcess = processFactory.createProcess("P" + Clock.getInstance().getCurrentCycle(), instructions, isIOBound, exceptionThreshold, resolutionCycles);
 
         System.out.println("\n[OS] Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
+    }
+
+    
+    public OurProcess addNewProcess(String name, int instructions, boolean isIOBound, int exceptionThreshold, int resolutionCycles) {
+
+        OurProcess newProcess = isIOBound ? processFactory.createProcess(name + Clock.getInstance().getCurrentCycle(), instructions, isIOBound, exceptionThreshold, resolutionCycles) : processFactory.createProcess(name + Clock.getInstance().getCurrentCycle(), instructions, false, 0, 0);
+
+        System.out.println("\n[OS] Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
+        return newProcess;
+
     }
 
     public void setScheduler(Scheduler scheduler) {
