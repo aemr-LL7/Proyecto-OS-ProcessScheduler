@@ -537,7 +537,7 @@ public class SimulationUI extends javax.swing.JFrame {
         processTablePanel = new javax.swing.JPanel();
         processTable = new javax.swing.JScrollPane();
         processJTable = new javax.swing.JTable();
-        jMenuBar1 = new javax.swing.JMenuBar();
+        mainMenuBar = new javax.swing.JMenuBar();
         fileMenu = new javax.swing.JMenu();
         simulationOptions = new javax.swing.JMenu();
         jMenu3 = new javax.swing.JMenu();
@@ -953,20 +953,20 @@ public class SimulationUI extends javax.swing.JFrame {
         getContentPane().add(mainSimulationPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 1370, 700));
 
         fileMenu.setText("Archivo");
-        jMenuBar1.add(fileMenu);
+        mainMenuBar.add(fileMenu);
 
         simulationOptions.setText("Simulación");
 
-        jMenu3.setText("PLANIFICACIÓN");
+        jMenu3.setText("Cambiar Planificador");
 
         fcfsMenuItem.setText("FCFS");
         jMenu3.add(fcfsMenuItem);
 
         simulationOptions.add(jMenu3);
 
-        jMenuBar1.add(simulationOptions);
+        mainMenuBar.add(simulationOptions);
 
-        setJMenuBar(jMenuBar1);
+        setJMenuBar(mainMenuBar);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -1276,7 +1276,6 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JMenu jMenu3;
-    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -1286,6 +1285,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JPanel listFinishedPanel;
     private javax.swing.JButton loadButton;
+    private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JPanel mainSimulationPanel;
     private javax.swing.JTextField nameField;
     private javax.swing.JTextField numCPUsField;
