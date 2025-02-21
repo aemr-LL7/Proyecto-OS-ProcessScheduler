@@ -108,14 +108,13 @@ public class SimulationUI extends javax.swing.JFrame {
         // elementos de simulacion:
         // cpus y colas
         if (!operatingSystem.getCpuList().isEmpty()) {
-            operatingSystem.getCpuList().wipeList();
+            getOperatingSystem().getCpuList().wipeList();
         }
-        
+
         if (!queueManager.isEmpty()) {
-            queueManager.getReadyQueue().clearQueue();
+            getQueueManager().getReadyQueue().clearQueue();
         }
-        
-        
+
     }
 
     private void gottaStartSimulation(int typeScheduler) {
@@ -139,22 +138,22 @@ public class SimulationUI extends javax.swing.JFrame {
         // INICIAR SIMULACION
         this.startSimulation = true;
         this.changeSchedulerMenuItem.setEnabled(true);
-        this.operatingSystem.startSystem();
+        this.getOperatingSystem().startSystem();
     }
 
     private void selectScheduler(int typeScheduler) {
         switch (typeScheduler) {
             case 1:
-                this.operatingSystem.setScheduler(new pFirstComeFirstServed());
+                this.getOperatingSystem().setScheduler(new pFirstComeFirstServed());
                 break;
             case 3:
-                this.operatingSystem.setScheduler(new pShortestJobFirst());
+                this.getOperatingSystem().setScheduler(new pShortestJobFirst());
                 break;
             case 4:
-                this.operatingSystem.setScheduler(new pSRT());
+                this.getOperatingSystem().setScheduler(new pSRT());
                 break;
             case 5:
-                this.operatingSystem.setScheduler(new pHRRN());
+                this.getOperatingSystem().setScheduler(new pHRRN());
                 break;
             default:
                 throw new IllegalArgumentException("Tipo de scheduler no válido: " + typeScheduler);
@@ -183,7 +182,7 @@ public class SimulationUI extends javax.swing.JFrame {
     }
 
     private void addCPUToSimulation() {
-        int cpuCount = operatingSystem.getCpuList().getSize();
+        int cpuCount = getOperatingSystem().getCpuList().getSize();
 
         // Verificar si ya tenemos el máximo permitido (por ejemplo, 3 CPUs)
         if (cpuCount >= 3) {
@@ -192,11 +191,11 @@ public class SimulationUI extends javax.swing.JFrame {
         }
 
         // Crear nuevo CPU
-        operatingSystem.addProcessor();
+        getOperatingSystem().addProcessor();
         this.setNumCPUs(cpuCount);
 
         // Obtener el último CPU añadido
-        OurCPU newCpu = operatingSystem.getCpuList().getValueByIndex(cpuCount-1);
+        OurCPU newCpu = getOperatingSystem().getCpuList().getValueByIndex(cpuCount - 1);
 
         if (newCpu != null) {
             //newCpu.start(); // Iniciar el hilo del nuevo CPU
@@ -216,7 +215,7 @@ public class SimulationUI extends javax.swing.JFrame {
 //            return;
 //        }
 
-        int cpuCount = operatingSystem.getCpuList().getSize();
+        int cpuCount = getOperatingSystem().getCpuList().getSize();
 
         if (cpuCount <= 1) {
             System.out.println("=>" + "NO ME ELIMINEI LOQUETE");
@@ -230,10 +229,10 @@ public class SimulationUI extends javax.swing.JFrame {
 
         if (confirm == JOptionPane.YES_OPTION) {
             // Obtener el último CPU de la lista
-            OurCPU lastCpu = operatingSystem.getCpuList().getValueByIndex(cpuCount - 1);
+            OurCPU lastCpu = getOperatingSystem().getCpuList().getValueByIndex(cpuCount - 1);
 
             // Eliminarlo del sistema
-            operatingSystem.removeCPU(lastCpu);
+            getOperatingSystem().removeCPU(lastCpu);
             this.setNumCPUs(this.getNumCPUs() - 1);
 
             // Actualizar la UI
@@ -248,6 +247,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
         if (newProcess != null) {
             JOptionPane.showMessageDialog(this, "Proceso '" + name + "' creado con exito!", "Proceso Creado", JOptionPane.INFORMATION_MESSAGE);
+            this.numProcesses ++;
             this.updateProcessTable();
             this.createProcessDialog.dispose();
         } else {
@@ -259,12 +259,13 @@ public class SimulationUI extends javax.swing.JFrame {
     private void initListAndTable(int numCPUs, int numProcesses) {
         this.cpuListModel.clear();
         // Crea los cpus y procesos pero no inicia la simulacion
-        operatingSystem.initUISystemValues(numCPUs, numProcesses);
+        getOperatingSystem().initCpuforUI(numCPUs);
+        getOperatingSystem().initProcessforUI(numProcesses);
     }
 
     public void updateCPUList() {
-        SimpleList<OurCPU> cpuList = this.operatingSystem.getCpuList();
-        
+        SimpleList<OurCPU> cpuList = this.getOperatingSystem().getCpuList();
+
         this.cpuListModel.clear();
 
         // Actualizar cada elemento de CPU segun el indice en la lista de cpus
@@ -283,7 +284,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void updateProcessTable() {
         processTableModel.setRowCount(0);
-        SimpleList<OurProcess> processes = queueManager.getProcessTable().getEntriesList();
+        SimpleList<OurProcess> processes = getQueueManager().getProcessTable().getEntriesList();
 
         for (int i = 0; i < processes.getSize(); i++) {
             OurProcess process = processes.getValueByIndex(i);
@@ -309,7 +310,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
     // Metodo para actualizar los detalles de los cpu en ejecucion
     private void updateCPUDisplays() {
-        SimpleList<OurCPU> cpuList = operatingSystem.getCpuList();
+        SimpleList<OurCPU> cpuList = getOperatingSystem().getCpuList();
         int activeCPUs = cpuList.getSize(); // Obtener num de CPUs activos
 
         updateSingleCPUDisplay(cpu1Panel, (activeCPUs >= 1) ? cpuList.getValueByIndex(0) : null, "CPU 1");
@@ -528,9 +529,9 @@ public class SimulationUI extends javax.swing.JFrame {
         //queueManager.getBlockedQueueSemaphore().acquire();
         //queueManager.getFinishedQueueSemaphore().acquire();
         // Actualizar paneles (+ CPUS)
-        this.updatePanelContent(queueReadyPanel, queueManager.getReadyQueue(), ProcessState.READY);
-        this.updatePanelContent(queueBlockedPanel, queueManager.getBlockedQueue(), ProcessState.BLOCKED);
-        this.updatePanelContentList(listFinishedPanel, queueManager.getFinishedProcesses(), ProcessState.FINISHED);
+        this.updatePanelContent(queueReadyPanel, getQueueManager().getReadyQueue(), ProcessState.READY);
+        this.updatePanelContent(queueBlockedPanel, getQueueManager().getBlockedQueue(), ProcessState.BLOCKED);
+        this.updatePanelContentList(listFinishedPanel, getQueueManager().getFinishedProcesses(), ProcessState.FINISHED);
         this.updateCPUDisplays();
         this.updateProcessTable();
 
@@ -578,7 +579,7 @@ public class SimulationUI extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         nameField = new javax.swing.JTextField();
-        instructionsField1 = new javax.swing.JTextField();
+        instructionsField = new javax.swing.JTextField();
         generateRPButton = new javax.swing.JButton();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
@@ -782,7 +783,7 @@ public class SimulationUI extends javax.swing.JFrame {
         jLabel7.setText("Ciclos para resolver excepción:");
         jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 150, -1, -1));
         jPanel1.add(nameField, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 70, 120, 23));
-        jPanel1.add(instructionsField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 70, 60, 23));
+        jPanel1.add(instructionsField, new org.netbeans.lib.awtextra.AbsoluteConstraints(170, 70, 60, 23));
 
         generateRPButton.setText("Generar Procesos");
         generateRPButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1155,8 +1156,8 @@ public class SimulationUI extends javax.swing.JFrame {
             this.setNumProcesses(process);
             confirmed = true;
             // Cambiar la duracion del ciclo y permisos del reloj (esto ultimo depende del num de cpus)
-            operatingSystem.getSystemClock().setCycleDuration(getCycleDuration());
-            operatingSystem.getSystemClock().setPermissionsRequired(getNumCPUs());
+            getOperatingSystem().getSystemClock().setCycleDuration(getCycleDuration());
+            getOperatingSystem().getSystemClock().setPermissionsRequired(getNumCPUs());
             // valor para el slider en ui
             this.cycleDurationSlider.setValue(getCycleDuration());
 
@@ -1182,7 +1183,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         // TODO add your handling code here:
-        if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
+        if (this.confirmed && this.getQueueManager().getReadyQueueSize() != 0 && this.getOperatingSystem().getCpuList() != null) {
 
             this.showStartSimulationDialog(this);
 
@@ -1207,7 +1208,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void createCpusButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createCpusButtonActionPerformed
         // TODO add your handling code here:
-        if (this.operatingSystem.getCpuList().getSize() >= 3) {
+        if (this.getOperatingSystem().getCpuList().getSize() >= 3) {
             JOptionPane.showMessageDialog(this, "No se pueden añadir más de 3 CPUs.", "Límite alcanzado", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -1219,7 +1220,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void deleteCpusButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteCpusButtonActionPerformed
         // TODO add your handling code here:
-        if (this.operatingSystem.getCpuList().getSize() > 1) {
+        if (this.getOperatingSystem().getCpuList().getSize() > 1) {
             this.removeCPUFromSimulation();
             this.updateCPUList();
         } else {
@@ -1230,7 +1231,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void createProcessButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createProcessButtonActionPerformed
         // TODO add your handling code here:
-        if (this.operatingSystem.getCpuList() == null || this.operatingSystem.getCpuList().getSize() == 0) {
+        if (this.getOperatingSystem().getCpuList() == null || this.getOperatingSystem().getCpuList().getSize() == 0) {
             JOptionPane.showMessageDialog(this, "Error, todavía no se han creado CPUs en el sistema!", "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -1242,7 +1243,7 @@ public class SimulationUI extends javax.swing.JFrame {
         // TODO add your handling code here:
         int newSpeed = this.cycleDurationSlider.getValue();
         System.out.println(newSpeed);
-        operatingSystem.getSystemClock().setCycleDuration(newSpeed);
+        getOperatingSystem().getSystemClock().setCycleDuration(newSpeed);
     }//GEN-LAST:event_cycleDurationSliderStateChanged
 
     private void createPDButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createPDButtonActionPerformed
@@ -1256,7 +1257,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
         int instructions;
         try {
-            instructions = Integer.parseInt(generateRandomProcessField.getText().trim());
+            instructions = Integer.parseInt(instructionsField.getText().trim());
             if (instructions <= 0) {
                 throw new NumberFormatException();
             }
@@ -1318,8 +1319,10 @@ public class SimulationUI extends javax.swing.JFrame {
 
             for (int i = 0; i < numOfProcesses; i++) {
                 System.out.println("Intentando crear proceso #" + (i + 1));
-                this.operatingSystem.generateNewProcess();
+                this.getOperatingSystem().generateNewProcess();
             }
+            
+            this.numProcesses = this.queueManager.getProcessTable().getEntriesList().getSize() + numOfProcesses;
 
             JOptionPane.showMessageDialog(this, numOfProcesses + " procesos creados con éxito!", "Procesos Creado", JOptionPane.INFORMATION_MESSAGE);
 
@@ -1335,11 +1338,11 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void saveDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveDataMenuItemActionPerformed
         // TODO add your handling code here:
-        if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
+        if (this.confirmed && this.getQueueManager().getReadyQueueSize() != 0 && this.getOperatingSystem().getCpuList() != null) {
 
             // Guardar configuracion deseada antes de la simulacion
             fileManager.saveSimulationConfig(this.getCycleDuration(), this.getNumCPUs(), this.getNumProcesses());
-            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.getNumCPUs());
+            fileManager.saveProcessData(this.getQueueManager().getProcessTable(), this.getNumCPUs());
             JOptionPane.showMessageDialog(this, "Configuración guardada en la raíz del proyecto!", "Configuration Savedata", JOptionPane.INFORMATION_MESSAGE);
 
         } else {
@@ -1379,17 +1382,21 @@ public class SimulationUI extends javax.swing.JFrame {
 
     private void writeDataMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_writeDataMenuItemActionPerformed
         // TODO add your handling code here:
-        // ESCRIBIR LA DATA PROVENIENTE DEL TXT Y JSON
-        if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
+        // CARGAR CONFIG DESDE TXT Y JSON
+        fileManager.loadSimulationData(this, this.getQueueManager().getProcessTable());
+        // Actualizar valores de interfaz
+        this.updateProcessTable();
+        System.out.println("DURACION: " + this.getCycleDuration() + "\nCPUS: " + this.getNumCPUs() + "\nPROCESOS: " + this.getNumProcesses());
 
-            // Cargar configuracion deseada antes de la simulacion
-            fileManager.saveSimulationConfig(this.getCycleDuration(), this.getNumCPUs(), this.getNumProcesses());
-            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.getNumCPUs());
-            JOptionPane.showMessageDialog(this, "Configuración ha sido cargada en el sistema!", "Configuration Savedata", JOptionPane.INFORMATION_MESSAGE);
+        // Cambiar estado
+        this.confirmed = true;
+        this.createProcessButton.setEnabled(true);
+        this.cycleDurationSlider.setEnabled(true);
 
-        } else {
-            JOptionPane.showMessageDialog(this, "Debe crear los elementos principales en la seccion de 'CREAR' o 'CARGAR' antes de poder reescribir datos.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        this.createButton.setEnabled(false);
+        this.createCpusButton.setEnabled(true);
+        this.deleteCpusButton.setEnabled(true);
+
     }//GEN-LAST:event_writeDataMenuItemActionPerformed
 
     /**
@@ -1459,7 +1466,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JTextField generateRandomProcessField;
     private javax.swing.JButton hrrnButton;
     private javax.swing.JMenuItem hrrnMenuItem;
-    private javax.swing.JTextField instructionsField1;
+    private javax.swing.JTextField instructionsField;
     private javax.swing.JCheckBox ioBoundCheckBox;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
@@ -1586,6 +1593,20 @@ public class SimulationUI extends javax.swing.JFrame {
      */
     public void setNumProcesses(int numProcesses) {
         this.numProcesses = numProcesses;
+    }
+
+    /**
+     * @return the operatingSystem
+     */
+    public OperatingSystem getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    /**
+     * @return the queueManager
+     */
+    public QueueManager getQueueManager() {
+        return queueManager;
     }
 
 }

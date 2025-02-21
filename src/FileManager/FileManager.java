@@ -9,6 +9,7 @@ import Classes.ProcessFactory.PCB;
 import EDD.OurHashTable;
 import EDD.SimpleList;
 import Main.GUI.SimulationUI;
+import OperativeSystem.QueueManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -93,7 +94,7 @@ public class FileManager {
         this.loadConfigFile(ui);
 
         // Cargar procesos del archivo JSON
-        this.loadProcessesFile(processTable);
+        this.loadProcessesFile(processTable, ui.getOperatingSystem().getQueueManager());
     }
 
     private void loadConfigFile(SimulationUI ui) {
@@ -122,9 +123,14 @@ public class FileManager {
                     if (line.startsWith("CycleDuration=")) {
                         int cycleDuration = Integer.parseInt(line.split("=")[1].trim());
                         ui.setCycleDuration(cycleDuration);
+                        ui.getOperatingSystem().getSystemClock().setCycleDuration(cycleDuration);
+
                     } else if (line.startsWith("NumberOfCpus=")) {
                         int numCpus = Integer.parseInt(line.split("=")[1].trim());
                         ui.setNumCPUs(numCpus);
+                        ui.getOperatingSystem().getSystemClock().setPermissionsRequired(numCpus);
+                        ui.getOperatingSystem().initCpuforUI(numCpus);
+                        
                     } else if (line.startsWith("NumberOfProcesses=")) {
                         int numProcesses = Integer.parseInt(line.split("=")[1].trim());
                         ui.setNumProcesses(numProcesses);
@@ -144,7 +150,7 @@ public class FileManager {
         }
     }
 
-    private void loadProcessesFile(OurHashTable processTable) {
+    private void loadProcessesFile(OurHashTable processTable, QueueManager queueManager) {
         try {
             String content = this.readFile(processDataFile);
             if (content.isEmpty()) {
@@ -156,7 +162,24 @@ public class FileManager {
             }
 
             // Convertir el string a un objeto JSON e iterar para crear pcbs y proceso, añadir a la hash
-            
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObj = jsonParser.parse(content).getAsJsonObject();
+
+            // Iterar sobre las entradas
+            for (String processName : jsonObj.keySet()) {
+                // Obtener el objeto JSON asociado al nombre del proceso
+                JsonObject pcbJson = jsonObj.get(processName).getAsJsonObject();
+
+                // Crear un nuevo PCB desde el JSON
+                PCB pcb = gson.fromJson(pcbJson, PCB.class);
+
+                // Crear un nuevo proceso con el PCB
+                OurProcess process = new OurProcess(pcb);
+
+                // Agregar el proceso a la tabla hash y las colas de listos
+                processTable.put(pcb.getId(), process);
+                queueManager.addToReadyQueue(pcb);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

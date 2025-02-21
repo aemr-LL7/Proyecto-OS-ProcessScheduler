@@ -57,9 +57,14 @@ public final class OperatingSystem {
         System.out.println(" ====> Sistema Operativo iniciado");
     }
 
-    public void initUISystemValues(int numCpus, int numProcesses) {
-        // Empezamos la simulación con 2 procesadores
+    public void initCpuforUI(int numCpus) {
+
         this.initializeProcessors(SimulationUI.getSimulationUIInstance().getNumCPUs());
+
+    }
+
+    public void initProcessforUI(int numProcesses) {
+
         this.initializeProcesses(SimulationUI.getSimulationUIInstance().getNumProcesses());
     }
 
@@ -152,26 +157,38 @@ public final class OperatingSystem {
     }
 
     public void generateNewProcess() {
+        // Verificar si la cola de listos esta "llena"
         if (getQueueManager().getReadyQueueSize() >= maxReadyQueueSize) {
             System.out.println("Cola de listos llena, no se generan nuevos procesos.");
             return;
         }
 
+        // Generar valores aleatorios para el proceso
         Random random = new Random();
         int instructions = random.nextInt(10) + 20; // Entre 20 y 30 instrucciones
-        boolean isIOBound = random.nextBoolean(); // Proceso con I/O aleatorio
-        int exceptionThreshold = isIOBound ? (random.nextInt(4) + 4) : 0; // Cada cuántas instrucciones lanza una interrupción
-        int resolutionCycles = isIOBound ? (random.nextInt(3) + 5) : 0; // Ciclos para resolver I/O
+        boolean isIOBound = random.nextBoolean();
+        int exceptionThreshold = isIOBound ? (random.nextInt(4) + 4) : 0;
+        int resolutionCycles = isIOBound ? (random.nextInt(3) + 5) : 0;
 
-        OurProcess newProcess = processFactory.createProcess("P" + Clock.getInstance().getCurrentCycle(), instructions, isIOBound, exceptionThreshold, resolutionCycles);
+        OurProcess newProcess = processFactory.createProcess(
+                "P" + this.systemClock.getCurrentCycle(),
+                instructions,
+                isIOBound,
+                exceptionThreshold,
+                resolutionCycles
+        );
 
-        System.out.println("\n[OS] Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
+        if (newProcess != null) {
+            System.out.println("\n[OS] Nuevo proceso generado -> "
+                    + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
+        } else {
+            System.out.println("\n[OS] Error al generar el proceso.");
+        }
     }
 
-    
     public OurProcess addNewProcess(String name, int instructions, boolean isIOBound, int exceptionThreshold, int resolutionCycles) {
 
-        OurProcess newProcess = isIOBound ? processFactory.createProcess(name + Clock.getInstance().getCurrentCycle(), instructions, isIOBound, exceptionThreshold, resolutionCycles) : processFactory.createProcess(name + Clock.getInstance().getCurrentCycle(), instructions, false, 0, 0);
+        OurProcess newProcess = isIOBound ? processFactory.createProcess(name, instructions, isIOBound, exceptionThreshold, resolutionCycles) : processFactory.createProcess(name, instructions, false, 0, 0);
 
         System.out.println("\n[OS] Nuevo proceso generado -> " + newProcess.getPcb().getName() + " con " + instructions + " instrucciones");
         return newProcess;
