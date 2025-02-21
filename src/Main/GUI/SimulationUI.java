@@ -247,7 +247,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
         if (newProcess != null) {
             JOptionPane.showMessageDialog(this, "Proceso '" + name + "' creado con exito!", "Proceso Creado", JOptionPane.INFORMATION_MESSAGE);
-            this.numProcesses ++;
+            this.numProcesses++;
             this.updateProcessTable();
             this.createProcessDialog.dispose();
         } else {
@@ -1321,14 +1321,13 @@ public class SimulationUI extends javax.swing.JFrame {
                 System.out.println("Intentando crear proceso #" + (i + 1));
                 this.getOperatingSystem().generateNewProcess();
             }
-            
-            this.numProcesses = this.queueManager.getProcessTable().getEntriesList().getSize() + numOfProcesses;
 
-            JOptionPane.showMessageDialog(this, numOfProcesses + " procesos creados con éxito!", "Procesos Creado", JOptionPane.INFORMATION_MESSAGE);
+            this.numProcesses = this.queueManager.getProcessTable().getEntriesList().getSize() + numOfProcesses;
 
             // Actualizar la tabla de procesos en la UI
             this.updateProcessTable();
             this.createProcessDialog.dispose();
+            JOptionPane.showMessageDialog(this, numOfProcesses + " procesos creados con éxito!", "Procesos Creado", JOptionPane.INFORMATION_MESSAGE);
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this.configDialog, "Por favor, ingrese valores numéricos válidos.\n- Duración del ciclo debe ser >= 500 ms\n- Número de CPUs debe ser 1<= x <= 3\n- Número de procesos debe ser >= 1", "Error", JOptionPane.ERROR_MESSAGE);
