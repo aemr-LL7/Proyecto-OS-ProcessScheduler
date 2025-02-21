@@ -11,6 +11,9 @@ import EDD.SimpleList;
 import Main.GUI.SimulationUI;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -65,6 +68,102 @@ public class FileManager {
         } catch (IOException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error al crear la carpeta o archivos.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public void loadSimulationData(SimulationUI ui, OurHashTable processTable) {
+        // Primero verificar si hay datos existentes
+        boolean hasExistingData = this.checkExistingData(ui, processTable);
+
+        if (hasExistingData) {
+            int option = JOptionPane.showConfirmDialog(null,
+                    "Existen datos cargados en el sistema. ¿Desea sobreescribirlos?",
+                    "Datos existentes",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (option != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            // Limpiar datos existentes
+            this.clearExistingData(ui, processTable);
+        }
+
+        // Cargar configuración del archivo txt
+        this.loadConfigFile(ui);
+
+        // Cargar procesos del archivo JSON
+        this.loadProcessesFile(processTable);
+    }
+
+    private void loadConfigFile(SimulationUI ui) {
+        try {
+            String content = this.readFile(configFile);
+            if (content.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "El archivo de configuración está vacío.",
+                        "Error",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String[] lines = content.split("\n");
+            boolean inGeneralParams = false;
+
+            for (String line : lines) {
+                line = line.trim();
+
+                if (line.equals("[General Params]")) {
+                    inGeneralParams = true;
+                    continue;
+                }
+
+                if (inGeneralParams && !line.startsWith("[")) {
+                    if (line.startsWith("CycleDuration=")) {
+                        int cycleDuration = Integer.parseInt(line.split("=")[1].trim());
+                        ui.setCycleDuration(cycleDuration);
+                    } else if (line.startsWith("NumberOfCpus=")) {
+                        int numCpus = Integer.parseInt(line.split("=")[1].trim());
+                        ui.setNumCPUs(numCpus);
+                    } else if (line.startsWith("NumberOfProcesses=")) {
+                        int numProcesses = Integer.parseInt(line.split("=")[1].trim());
+                        ui.setNumProcesses(numProcesses);
+                    }
+                }
+            }
+
+            // Actualizar la UI con los nuevos valores
+            ui.updateCPUList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Error al cargar el archivo de configuración: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadProcessesFile(OurHashTable processTable) {
+        try {
+            String content = this.readFile(processDataFile);
+            if (content.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "El archivo de procesos está vacío.",
+                        "Error",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Convertir el string a un objeto JSON e iterar para crear pcbs y proceso, añadir a la hash
+            
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Error al cargar el archivo de procesos: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -180,4 +279,5 @@ public class FileManager {
 
         return generalParams;
     }
+
 }

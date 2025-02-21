@@ -101,9 +101,9 @@ public class SimulationUI extends javax.swing.JFrame {
 
     public void clearAllFields() {
         // parametros de config
-        this.cycleDuration = 0;
-        this.numCPUs = 0;
-        this.numProcesses = 0;
+        this.setCycleDuration(0);
+        this.setNumCPUs(0);
+        this.setNumProcesses(0);
 
         // elementos de simulacion:
         // cpus y colas
@@ -138,6 +138,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
         // INICIAR SIMULACION
         this.startSimulation = true;
+        this.changeSchedulerMenuItem.setEnabled(true);
         this.operatingSystem.startSystem();
     }
 
@@ -192,7 +193,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
         // Crear nuevo CPU
         operatingSystem.addProcessor();
-        this.numCPUs = cpuCount;
+        this.setNumCPUs(cpuCount);
 
         // Obtener el último CPU añadido
         OurCPU newCpu = operatingSystem.getCpuList().getValueByIndex(cpuCount-1);
@@ -200,7 +201,7 @@ public class SimulationUI extends javax.swing.JFrame {
         if (newCpu != null) {
             //newCpu.start(); // Iniciar el hilo del nuevo CPU
             this.updateCPUDisplays(); // Refrescar la UI
-            this.updateCPUList(operatingSystem.getCpuList());
+            this.updateCPUList();
             JOptionPane.showMessageDialog(this, "Nuevo CPU añadido con éxito!", "Añadir CPUs", JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(this, "Error al añadir un nuevo CPU.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -233,7 +234,7 @@ public class SimulationUI extends javax.swing.JFrame {
 
             // Eliminarlo del sistema
             operatingSystem.removeCPU(lastCpu);
-            this.numCPUs = this.numCPUs - 1;
+            this.setNumCPUs(this.getNumCPUs() - 1);
 
             // Actualizar la UI
             this.updateCPUDisplays();
@@ -261,8 +262,9 @@ public class SimulationUI extends javax.swing.JFrame {
         operatingSystem.initUISystemValues(numCPUs, numProcesses);
     }
 
-    private void updateCPUList(SimpleList<OurCPU> cpuList) {
-
+    public void updateCPUList() {
+        SimpleList<OurCPU> cpuList = this.operatingSystem.getCpuList();
+        
         this.cpuListModel.clear();
 
         // Actualizar cada elemento de CPU segun el indice en la lista de cpus
@@ -617,8 +619,12 @@ public class SimulationUI extends javax.swing.JFrame {
         saveDataMenuItem = new javax.swing.JMenuItem();
         writeDataMenuItem = new javax.swing.JMenuItem();
         simulationOptions = new javax.swing.JMenu();
-        jMenu3 = new javax.swing.JMenu();
+        changeSchedulerMenuItem = new javax.swing.JMenu();
         fcfsMenuItem = new javax.swing.JMenuItem();
+        rrMenuItem = new javax.swing.JMenuItem();
+        spnMenuItem = new javax.swing.JMenuItem();
+        srtMenuItem = new javax.swing.JMenuItem();
+        hrrnMenuItem = new javax.swing.JMenuItem();
 
         configDialog.getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -1088,12 +1094,25 @@ public class SimulationUI extends javax.swing.JFrame {
 
         simulationOptions.setText("Simulación");
 
-        jMenu3.setText("Cambiar Planificador");
+        changeSchedulerMenuItem.setText("Cambiar Planificador");
+        changeSchedulerMenuItem.setEnabled(false);
 
         fcfsMenuItem.setText("FCFS");
-        jMenu3.add(fcfsMenuItem);
+        changeSchedulerMenuItem.add(fcfsMenuItem);
 
-        simulationOptions.add(jMenu3);
+        rrMenuItem.setText("Round Robin");
+        changeSchedulerMenuItem.add(rrMenuItem);
+
+        spnMenuItem.setText("SPN");
+        changeSchedulerMenuItem.add(spnMenuItem);
+
+        srtMenuItem.setText("SRT");
+        changeSchedulerMenuItem.add(srtMenuItem);
+
+        hrrnMenuItem.setText("HRRN");
+        changeSchedulerMenuItem.add(hrrnMenuItem);
+
+        simulationOptions.add(changeSchedulerMenuItem);
 
         mainMenuBar.add(simulationOptions);
 
@@ -1131,18 +1150,18 @@ public class SimulationUI extends javax.swing.JFrame {
                 throw new NumberFormatException();
             }
 
-            this.cycleDuration = cycle;
-            this.numCPUs = cpu;
-            this.numProcesses = process;
+            this.setCycleDuration(cycle);
+            this.setNumCPUs(cpu);
+            this.setNumProcesses(process);
             confirmed = true;
             // Cambiar la duracion del ciclo y permisos del reloj (esto ultimo depende del num de cpus)
-            operatingSystem.getSystemClock().setCycleDuration(cycleDuration);
-            operatingSystem.getSystemClock().setPermissionsRequired(numCPUs);
+            operatingSystem.getSystemClock().setCycleDuration(getCycleDuration());
+            operatingSystem.getSystemClock().setPermissionsRequired(getNumCPUs());
             // valor para el slider en ui
-            this.cycleDurationSlider.setValue(cycleDuration);
+            this.cycleDurationSlider.setValue(getCycleDuration());
 
             // iniciar los valores de cpus y procesos y mostrarlos en los jpanel correspondientes
-            this.initListAndTable(numCPUs, numProcesses);
+            this.initListAndTable(getNumCPUs(), getNumProcesses());
             this.updateProcessTable();
 
             System.out.println("DURACION: " + this.getCycleDuration() + "\nCPUS: " + this.getNumCPUs() + "\nPROCESOS: " + this.getNumProcesses());
@@ -1202,7 +1221,7 @@ public class SimulationUI extends javax.swing.JFrame {
         // TODO add your handling code here:
         if (this.operatingSystem.getCpuList().getSize() > 1) {
             this.removeCPUFromSimulation();
-            this.updateCPUList(this.operatingSystem.getCpuList());
+            this.updateCPUList();
         } else {
             JOptionPane.showMessageDialog(this, "Ya no se pueden eliminar más CPUs.", "Límite de CPUs", JOptionPane.WARNING_MESSAGE);
         }
@@ -1319,8 +1338,8 @@ public class SimulationUI extends javax.swing.JFrame {
         if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
 
             // Guardar configuracion deseada antes de la simulacion
-            fileManager.saveSimulationConfig(this.cycleDuration, this.numCPUs, this.numProcesses);
-            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.numCPUs);
+            fileManager.saveSimulationConfig(this.getCycleDuration(), this.getNumCPUs(), this.getNumProcesses());
+            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.getNumCPUs());
             JOptionPane.showMessageDialog(this, "Configuración guardada en la raíz del proyecto!", "Configuration Savedata", JOptionPane.INFORMATION_MESSAGE);
 
         } else {
@@ -1364,8 +1383,8 @@ public class SimulationUI extends javax.swing.JFrame {
         if (this.confirmed && this.queueManager.getReadyQueueSize() != 0 && this.operatingSystem.getCpuList() != null) {
 
             // Cargar configuracion deseada antes de la simulacion
-            fileManager.saveSimulationConfig(this.cycleDuration, this.numCPUs, this.numProcesses);
-            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.numCPUs);
+            fileManager.saveSimulationConfig(this.getCycleDuration(), this.getNumCPUs(), this.getNumProcesses());
+            fileManager.saveProcessData(this.queueManager.getProcessTable(), this.getNumCPUs());
             JOptionPane.showMessageDialog(this, "Configuración ha sido cargada en el sistema!", "Configuration Savedata", JOptionPane.INFORMATION_MESSAGE);
 
         } else {
@@ -1414,6 +1433,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JButton cancelDialogParams;
     private javax.swing.JButton cancelDialogSimulation;
     private javax.swing.JButton cancelPDButton;
+    private javax.swing.JMenu changeSchedulerMenuItem;
     private javax.swing.JLabel clockTickCycleLabel;
     private javax.swing.JDialog configDialog;
     private javax.swing.JPanel controlPanel;
@@ -1438,6 +1458,7 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JButton generateRPButton;
     private javax.swing.JTextField generateRandomProcessField;
     private javax.swing.JButton hrrnButton;
+    private javax.swing.JMenuItem hrrnMenuItem;
     private javax.swing.JTextField instructionsField1;
     private javax.swing.JCheckBox ioBoundCheckBox;
     private javax.swing.JButton jButton1;
@@ -1451,7 +1472,6 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JMenu jMenu3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -1476,12 +1496,15 @@ public class SimulationUI extends javax.swing.JFrame {
     private javax.swing.JPanel queueBlockedPanel;
     private javax.swing.JPanel queueReadyPanel;
     private javax.swing.JButton rrButton;
+    private javax.swing.JMenuItem rrMenuItem;
     private javax.swing.JMenuItem saveDataMenuItem;
     private javax.swing.JScrollPane scrollCpusPane;
     private javax.swing.JMenu simulationOptions;
     private javax.swing.JPanel simulationPanel;
     private javax.swing.JButton spnButton;
+    private javax.swing.JMenuItem spnMenuItem;
     private javax.swing.JButton srtButton;
+    private javax.swing.JMenuItem srtMenuItem;
     private javax.swing.JButton startButton;
     private javax.swing.JDialog startSimulationDialog;
     private javax.swing.JButton stopButton;
@@ -1542,6 +1565,27 @@ public class SimulationUI extends javax.swing.JFrame {
      */
     public javax.swing.JLabel getClockTickCycleLabel() {
         return clockTickCycleLabel;
+    }
+
+    /**
+     * @param cycleDuration the cycleDuration to set
+     */
+    public void setCycleDuration(int cycleDuration) {
+        this.cycleDuration = cycleDuration;
+    }
+
+    /**
+     * @param numCPUs the numCPUs to set
+     */
+    public void setNumCPUs(int numCPUs) {
+        this.numCPUs = numCPUs;
+    }
+
+    /**
+     * @param numProcesses the numProcesses to set
+     */
+    public void setNumProcesses(int numProcesses) {
+        this.numProcesses = numProcesses;
     }
 
 }

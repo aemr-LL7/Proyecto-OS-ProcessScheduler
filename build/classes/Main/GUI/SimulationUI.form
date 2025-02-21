@@ -527,14 +527,35 @@
             <Property name="text" type="java.lang.String" value="Simulaci&#xf3;n"/>
           </Properties>
           <SubComponents>
-            <Menu class="javax.swing.JMenu" name="jMenu3">
+            <Menu class="javax.swing.JMenu" name="changeSchedulerMenuItem">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Cambiar Planificador"/>
+                <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <SubComponents>
                 <MenuItem class="javax.swing.JMenuItem" name="fcfsMenuItem">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="FCFS"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="rrMenuItem">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Round Robin"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="spnMenuItem">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="SPN"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="srtMenuItem">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="SRT"/>
+                  </Properties>
+                </MenuItem>
+                <MenuItem class="javax.swing.JMenuItem" name="hrrnMenuItem">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="HRRN"/>
                   </Properties>
                 </MenuItem>
               </SubComponents>
